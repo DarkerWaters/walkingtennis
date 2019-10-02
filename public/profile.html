@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="description" content="" />
+	<meta name="keywords" content="" />
+	<title>Walking Tennis Profile</title>
+
+	<!-- update the version number as needed -->
+	<script defer src="/__/firebase/7.0.0/firebase-app.js"></script>
+	<!-- include only the Firebase features as you need -->
+	<script defer src="/__/firebase/7.0.0/firebase-auth.js"></script>
+	<script defer src="/__/firebase/7.0.0/firebase-database.js"></script>
+	<script defer src="/__/firebase/7.0.0/firebase-messaging.js"></script>
+	<script defer src="/__/firebase/7.0.0/firebase-storage.js"></script>
+	<!-- add the UI for logging in-->
+	<script src="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.js"></script>
+	<link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.css" />
+	<!-- initialize the SDK after all desired features are loaded -->
+	<script defer src="/__/firebase/init.js"></script>
+
+	<!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
+	<script src="js/jquery.min.js"></script>
+	<script src="js/jquery.dropotron.min.js"></script>
+	<script src="js/jquery.scrollgress.min.js"></script>
+	<script src="js/jquery.scrolly.min.js"></script>
+	<script src="js/jquery.slidertron.min.js"></script>
+	<script src="js/skel.min.js"></script>
+	<script src="js/skel-layers.min.js"></script>
+	<script src="js/firebase.js"></script>
+	<script src="js/init.js"></script>
+	<noscript>
+		<link rel="stylesheet" href="css/skel.css" />
+		<link rel="stylesheet" href="css/style.css" />
+		<link rel="stylesheet" href="css/style-xlarge.css" />
+	</noscript>
+	<!--[if lte IE 9]><link rel="stylesheet" href="css/ie/v9.css" /><![endif]-->
+	<!--[if lte IE 8]><link rel="stylesheet" href="css/ie/v8.css" /><![endif]-->
+</head>
+
+<body class="landing">
+	<!-- Header -->
+	<header id="header" class="skel-layers-fixed">
+		<h1><a href="index.html">Walking Tennis</a></h1>
+		<nav id="nav" include-html="main_menu.html"></nav>
+	</header>
+
+
+	<!-- Main -->
+	<section id="main" class="wrapper style1">
+		<div class="container">
+			<header class="major">
+				<h2>Walking Tennis Member Profile</h2>
+				<p>View and update your Walking Tennis data here...</p>
+			</header>
+			<form id='profile_data' method="post" action="#">
+				<span class="image left">
+					<img id='user_image' src="images/generic/pic07.jpg" alt="users image" />
+					<a class="button special" id='log_out' onclick="logout();">Log out...</a>
+				</span>
+				<div class="row uniform">
+					<div class="6u 12u(3)">
+						<input type="text" name="name" id="name" value="" placeholder="Name" readonly />
+					</div>
+					<div class="6u 12u(3)">
+						<input type="email" name="email" id="email" value="" placeholder="Email" readonly />
+						<input type="checkbox" id="email-verified" name="email-verified" onclick="return false;">
+						<label for="email-verified">Email Verified</label>
+						<a class="button special" id='send_verification' onclick="sendEmailVerfication();">Send verification email...</a>
+					</div>
+				</div>
+				<div class="row uniform">
+					<div class="6u 12u(2)">
+						<input type="checkbox" id="membership-member" name="membership-member" onclick="return false;">
+						<label for="membership-member">Standard Member</label>
+					</div>
+					<div class="6u 12u(2)">
+						<input type="checkbox" id="membership-group" name="membership-group" onclick="return false;">
+						<label for="membership-group">Group / Club</label>
+					</div>
+					<div class="6u 12u(2)">
+						<input type="checkbox" id="membership-affiliate" name="membership-affiliate" onclick="return false;">
+						<label for="membership-affiliate">Affiliate</label>
+					</div>
+					<div class="6u 12u(2)">
+						<input type="checkbox" id="membership-partner" name="membership-partner" onclick="return false;">
+						<label for="membership-partner">Partner</label>
+					</div>
+				</div>
+				<div>
+					<br/>
+					<a class="button special" id='membership_button' onclick="showMembershipChange();">Change Membership Level</a>
+				</div>
+				<div id='change_membership' style='display:none'>
+					<header class="major">
+						<h2>Upgrade your membership</h2>
+						<p>TODO - changing membership levels...</p>
+					</header>
+				</div>
+			</form>
+		</div>
+	</section>
+
+	<script>
+		// https://firebase.google.com/docs/auth/web/manage-users#get_the_currently_signed-in_user
+		// need to manage the user data in this page
+		function showMembershipChange() {
+			document.getElementById('change_membership').style.display = 'block';
+			document.getElementById('membership_button').style.display = 'none';
+		};
+		function sendEmailVerfication() {
+			var user = firebase.auth().currentUser;
+			if (user) {
+				user.sendEmailVerification().then(function() {
+					// Email sent.
+					alert('email sent to ' + user.email);
+				}).catch(function(error) {
+					// An error happened.
+					console.log(error);
+				});
+			}
+			populateUserData();
+		}
+		function logout() {
+			firebase.auth().signOut().then(function() {
+				// Sign-out successful.
+			}).catch(function(error) {
+				// An error happened.
+				console.log(error);
+			});
+			populateUserData();
+		}
+		function populateUserData() {
+			var user = getFirebaseUser();
+			if (user) {
+				// populate the form
+				document.getElementById('profile_data').style.display = 'block';
+				document.getElementById('name').value = user.displayName;
+				document.getElementById('email').value = user.email;
+				document.getElementById('email-verified').checked = user.emailVerified;
+				document.getElementById('user_image').src = user.photoURL;
+				document.getElementById('membership-member').checked = true;
+				document.getElementById('membership-group').checked = false;
+				document.getElementById('membership-affiliate').checked = false;
+				document.getElementById('membership-partner').checked = false;
+
+				// hide the email verification button if verified already
+				if (user.emailVerified) {
+					document.getElementById('send_verification').style.display = 'none';
+				}
+				else {
+					document.getElementById('send_verification').style.display = 'block';
+				}
+			}
+			else {
+				// hide the form
+				document.getElementById('profile_data').style.display = 'none';
+			}
+		};
+		document.addEventListener('documentinitialised', function() {
+			console.log('document initialised so ready for input');
+			populateUserData();			
+		});
+		document.addEventListener('firebaseuserchange', function() {
+			console.log('login changed so ready for input');
+			populateUserData();			
+		});
+	</script>
+
+	<!-- Footer -->
+	<footer id="footer" include-html="footer.html"></footer>
+</body>
+
+</html>

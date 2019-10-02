@@ -142,6 +142,9 @@
 				})
 				.trigger('resize');
 		}
+
+		// dispatch an event to the document to inform them that we are initialised
+		document.dispatchEvent(new Event('documentinitialised'));
 	};
 
 	function importHtmlToElement(elmnt, isLastElement) {
