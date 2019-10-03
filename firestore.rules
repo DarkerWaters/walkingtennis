@@ -40,7 +40,7 @@ service cloud.firestore {
       // allow all members to read all lessons
       allow read: if isMember() || isAdmin();
     }
-    match /coaching/lessons/{documents=**} {
+    match /coaching_lessons/{documents=**} {
     	// only allow administrators to create lessons
     	allow update, delete, create : if isAdmin();
       // allow coaches to read all lessons

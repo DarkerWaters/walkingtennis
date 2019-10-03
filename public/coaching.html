@@ -22,6 +22,9 @@
 	<!-- initialize the SDK after all desired features are loaded -->
 	<script defer src="/__/firebase/init.js"></script>
 
+	<!-- add our page specific javascript here -->
+	<script src="pagejs/coaching.js"></script>
+
 	<!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
 	<script src="js/jquery.min.js"></script>
 	<script src="js/jquery.dropotron.min.js"></script>
@@ -48,7 +51,6 @@
 		<nav id="nav" include-html="main_menu.html"></nav>
 	</header>
 
-
 	<!-- Main -->
 	<section id="main" class="wrapper style1">
 		<div class="container">
@@ -64,51 +66,24 @@
 				<h2>Sorry but your membership does not include coaching</h2>
 				<p>Please go to your <a href="profile.html">profile</a> to update your subscription</p>
 			</div>
+			<div style="display: none">
+				<!-- a hidden div to place the templates to use to create the lesson plan-->
+				<a id="template-lesson-button" class="lesson_selector button">Lesson One</a>
+			</div>
+			<div id="lessons">
+				
+			</div>
+			<div id="lesson_content" style="display: none">
+				<header class="major">
+					<h2 id='lesson_name'>Title</h2>
+					<p id='lesson_subtitle'>This is the lesson subtitle here.</p>
+				</header>
+			</div>
 		</div>
 	</section>
 
 	<!-- Footer -->
 	<footer id="footer" include-html="footer.html"></footer>
-
-	<script>
-		// need to manage the data in this page
-		function populateUserData() {
-			var user = getFirebaseUser();
-			if (user) {
-				// we are logged in
-				document.getElementById('not_logged_in').style.display = 'none';
-				// get the user data from firebase here
-				getFirebaseUserData(user, function(data) {
-					// we have the user data here, set the data correcly
-					if (isFirebaseUserCoach(data)) {
-						// we are a coach
-						document.getElementById('not_a_coach').style.display = 'none';
-						// now get all the lessons and show them all here
-					}
-					else {
-						// we are not a coach
-						document.getElementById('not_a_coach').style.display = null;
-					}
-				}, function() {
-					// this is the failure to get the data, do our best I suppose
-					document.getElementById('not_a_coach').style.display = null;
-					console.log("Failed to get the firestore user data for " + user);
-				});
-			}
-			else {
-				// we are not logged in, ask the user to log in
-				document.getElementById('not_logged_in').style.display = null;
-			}
-		};
-		document.addEventListener('documentinitialised', function() {
-			console.log('document initialised so ready for input');
-			populateUserData();			
-		});
-		document.addEventListener('firebaseuserchange', function() {
-			console.log('login changed so ready for input');
-			populateUserData();			
-		});
-	</script>
 </body>
 
 </html>

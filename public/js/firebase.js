@@ -49,7 +49,7 @@ function getFirebaseUserData(user, onSuccess, onFailure) {
         // get the current UID and get the data in the store for this user
         var userUid = user.uid;
         var db = firebase.firestore();
-        // get the data for the user, create it if doesn't exist
+        // get the data for the user
         const docRef = db.collection('users').doc(userUid)
         docRef.get().then(function(doc) {
             if (doc.exists) {
