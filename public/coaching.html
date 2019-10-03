@@ -6,7 +6,7 @@
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 	<meta name="description" content="" />
 	<meta name="keywords" content="" />
-	<title>Learning Walking Tennis</title>
+	<title>Coaching Walking Tennis</title>
 
 	<!-- update the version number as needed -->
 	<script defer src="/__/firebase/7.0.0/firebase-app.js"></script>
@@ -53,14 +53,62 @@
 	<section id="main" class="wrapper style1">
 		<div class="container">
 			<header class="major">
-				<h2>Learning to play Walking Tennis</h2>
-					<p>This is a great starting point for both walking and regular tennis.</p>
+				<h2>Learning to coach Walking Tennis</h2>
+				<p>This is a great starting point for both walking and regular tennis.</p>
 			</header>
+			<div id="not_logged_in" style="display: none">
+				<h2>Sorry but access to this portion of the site is restricted to Coaching members only.</h2>
+				<p>Please log-in to your account to access this page.</p>
+			</div>
+			<div id="not_a_coach" style="display: none">
+				<h2>Sorry but your membership does not include coaching</h2>
+				<p>Please go to your <a href="profile.html">profile</a> to update your subscription</p>
+			</div>
 		</div>
 	</section>
 
 	<!-- Footer -->
 	<footer id="footer" include-html="footer.html"></footer>
+
+	<script>
+		// need to manage the data in this page
+		function populateUserData() {
+			var user = getFirebaseUser();
+			if (user) {
+				// we are logged in
+				document.getElementById('not_logged_in').style.display = 'none';
+				// get the user data from firebase here
+				getFirebaseUserData(user, function(data) {
+					// we have the user data here, set the data correcly
+					if (isFirebaseUserCoach(data)) {
+						// we are a coach
+						document.getElementById('not_a_coach').style.display = 'none';
+						// now get all the lessons and show them all here
+					}
+					else {
+						// we are not a coach
+						document.getElementById('not_a_coach').style.display = null;
+					}
+				}, function() {
+					// this is the failure to get the data, do our best I suppose
+					document.getElementById('not_a_coach').style.display = null;
+					console.log("Failed to get the firestore user data for " + user);
+				});
+			}
+			else {
+				// we are not logged in, ask the user to log in
+				document.getElementById('not_logged_in').style.display = null;
+			}
+		};
+		document.addEventListener('documentinitialised', function() {
+			console.log('document initialised so ready for input');
+			populateUserData();			
+		});
+		document.addEventListener('firebaseuserchange', function() {
+			console.log('login changed so ready for input');
+			populateUserData();			
+		});
+	</script>
 </body>
 
 </html>

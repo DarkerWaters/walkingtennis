@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // setup functions to make consistent
+
+    // is the request from the user requesting the
+  	function isRequestingUser(userId) {
+      return request.auth.uid == userId;
+    }
+    // is the user admin
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+    // is the membership null or still active
+		function isMember() {
+    	return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.expiry_member == null ||
+      			 get(/databases/$(database)/documents/users/$(request.auth.uid)).data.expiry_member > request.time
+    }
+    // is the coaching subscription still active
+		function isCoach() {
+    	return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.expiry_coach == null ||
+      			 get(/databases/$(database)/documents/users/$(request.auth.uid)).data.expiry_coach > request.time
+    }
+  
+    // Allow public read access to user data, but only content owners can write
+    match /users/{userId}/{documents=**} {
+      allow update : if isAdmin;
+      allow read, delete: if isRequestingUser(userId);
+      // Disallow the creation of users with active subscriptions / admin rights
+      allow create: if (
+      	!("isAdmin" in request.resource.data) &&
+        !("expiry_coach" in request.resource.data) &&
+        !("expiry_member" in request.resource.data) &&
+        isRequestingUser(userId)
+        );
+    }
+    match /lesson_plans/{documents=**} {
+    	// only allow administrators to create lessons
+    	allow update, delete, create : if isAdmin();
+      // allow all members to read all lessons
+      allow read: if isMember() || isAdmin();
+    }
+    match /coaching/lessons/{documents=**} {
+    	// only allow administrators to create lessons
+    	allow update, delete, create : if isAdmin();
+      // allow coaches to read all lessons
+      allow read: if isCoach() || isAdmin();
+    }
+  }
+}

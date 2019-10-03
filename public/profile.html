@@ -15,6 +15,7 @@
 	<script defer src="/__/firebase/7.0.0/firebase-database.js"></script>
 	<script defer src="/__/firebase/7.0.0/firebase-messaging.js"></script>
 	<script defer src="/__/firebase/7.0.0/firebase-storage.js"></script>
+	<script defer src="/__/firebase/7.0.0/firebase-firestore.js"></script>
 	<!-- add the UI for logging in-->
 	<script src="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.js"></script>
 	<link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.css" />
@@ -47,7 +48,6 @@
 		<nav id="nav" include-html="main_menu.html"></nav>
 	</header>
 
-
 	<!-- Main -->
 	<section id="main" class="wrapper style1">
 		<div class="container">
@@ -77,16 +77,16 @@
 						<label for="membership-member">Standard Member</label>
 					</div>
 					<div class="6u 12u(2)">
-						<input type="checkbox" id="membership-group" name="membership-group" onclick="return false;">
-						<label for="membership-group">Group / Club</label>
-					</div>
-					<div class="6u 12u(2)">
-						<input type="checkbox" id="membership-affiliate" name="membership-affiliate" onclick="return false;">
-						<label for="membership-affiliate">Affiliate</label>
-					</div>
-					<div class="6u 12u(2)">
-						<input type="checkbox" id="membership-partner" name="membership-partner" onclick="return false;">
-						<label for="membership-partner">Partner</label>
+						<span>
+							<span>
+								<input type="checkbox" id="membership-coach" name="membership-coach" style="display: inline" onclick="return false;">
+								<label for="membership-coach">Coach</label>
+							</span>
+							<span id="membership-coach-expiry-input" style="display: none">
+								<input type="text" id="membership-coach-expiry" name="membership-coach-expiry" style="width: 50%; display: inline; " readonly >
+								<label for="membership-coach-expiry" style="display: inline">Expiry</label>
+							</span>
+						</span>
 					</div>
 				</div>
 				<div>
@@ -107,7 +107,7 @@
 		// https://firebase.google.com/docs/auth/web/manage-users#get_the_currently_signed-in_user
 		// need to manage the user data in this page
 		function showMembershipChange() {
-			document.getElementById('change_membership').style.display = 'block';
+			document.getElementById('change_membership').style.display = null;
 			document.getElementById('membership_button').style.display = 'none';
 		};
 		function sendEmailVerfication() {
@@ -136,23 +136,61 @@
 			var user = getFirebaseUser();
 			if (user) {
 				// populate the form
-				document.getElementById('profile_data').style.display = 'block';
+				document.getElementById('profile_data').style.display = null;
 				document.getElementById('name').value = user.displayName;
 				document.getElementById('email').value = user.email;
 				document.getElementById('email-verified').checked = user.emailVerified;
 				document.getElementById('user_image').src = user.photoURL;
 				document.getElementById('membership-member').checked = true;
-				document.getElementById('membership-group').checked = false;
-				document.getElementById('membership-affiliate').checked = false;
-				document.getElementById('membership-partner').checked = false;
+				document.getElementById('membership-coach').checked = false;
+				document.getElementById('membership-coach-expiry-input').style.display = 'none';
 
 				// hide the email verification button if verified already
 				if (user.emailVerified) {
 					document.getElementById('send_verification').style.display = 'none';
 				}
 				else {
-					document.getElementById('send_verification').style.display = 'block';
+					document.getElementById('send_verification').style.display = null;
 				}
+				// get the user data from firebase here
+				getFirebaseUserData(user, function(data) {
+					// we have the user data here, set the data correcly
+					document.getElementById('name').value = data['name'];
+					document.getElementById('email').value = data['email'];
+					var date = data['expiry_member'];
+					if (date == null || date.toDate().getTime() > new Date().getTime()) {
+						// there is no expiry, or it hasn't passed, this is active, we are a member
+						document.getElementById('membership-coach').checked = true;
+					}
+					else {
+						// the expiry date has passed
+						document.getElementById('membership-coach').checked = false;
+					}
+					
+					date = data['expiry_coach'];
+					if (date == null || date.toDate().getTime() > new Date().getTime()) {
+						// there is no expiry, or it hasn't passed, this is active, we are a coach
+						document.getElementById('membership-coach').checked = true;
+						if (date == null) {
+							// lasts forever
+							document.getElementById('membership-coach-expiry').value = "never";
+						}
+						else {
+							// else there is an expiry date
+							document.getElementById('membership-coach-expiry').value = date.toDate().toLocaleDateString();
+						}
+						// and show it
+						document.getElementById('membership-coach-expiry-input').style.display = 'inline';
+					}
+					else {
+						// the expiry date has passed
+						document.getElementById('membership-coach').checked = false;
+						document.getElementById('membership-coach-expiry-input').style.display = 'none';
+					}
+				}, function() {
+					// this is the failure to get the data, do our best I suppose
+					console.log("Failed to get the firestore user data for " + user);
+				});
 			}
 			else {
 				// hide the form
