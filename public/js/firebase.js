@@ -184,6 +184,26 @@ function updateFirebaseUserItems(user) {
     }
 }
 
+function updateFirebaseUserDisplay(user) {
+    // update the dispay according the user being logged on or not
+    if (user) {
+        // User is signed in.
+        signIn.style.display = 'none';
+        signedIn.style.display = null;
+        signedIn.innerHTML  = '<a href="profile.html">' + user.displayName + '</a>';
+        console.log('user ' + user.displayName + " logged in");
+    } else {
+        // No user is signed in.
+        signIn.style.display = null;
+        signedIn.style.display = 'none';
+        console.log('no user logged in');
+    }
+    // update user role details
+    updateFirebaseUserItems(user);
+    // dispatch this change to the document
+    document.dispatchEvent(new Event('firebaseuserchange'));
+}
+
 function initialiseFirebaseLoginButton() {
     // setup the login button properly
     var signIn = document.getElementById('firebaseSignIn');
@@ -192,24 +212,8 @@ function initialiseFirebaseLoginButton() {
         signIn.style.display = 'none';
         signedIn.style.display = 'none';
         firebase.auth().onAuthStateChanged(function(user) {
-            if (user) {
-                // User is signed in.
-                signIn.style.display = 'none';
-                signedIn.style.display = null;
-                signedIn.innerHTML  = '<a href="profile.html">' + user.displayName + '</a>';
-                console.log('user ' + user.displayName + " logged in");
-            } else {
-                // No user is signed in.
-                signIn.style.display = null;
-                signedIn.style.display = 'none';
-                console.log('no user logged in');
-            }
-
-            // update user role details
-            updateFirebaseUserItems(user);
-
-            // dispatch this change to the document
-            document.dispatchEvent(new Event('firebaseuserchange'));
+            // update the display of the user here
+            updateFirebaseUserDisplay(user);
         });
         signIn.onclick = signinFirebase;
     }

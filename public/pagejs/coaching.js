@@ -149,11 +149,6 @@ function populateUserData() {
     }
 };
 
-document.addEventListener('documentinitialised', function() {
-    console.log('document initialised so ready for input');
-    populateUserData();			
-});
-
 document.addEventListener('firebaseuserchange', function() {
     console.log('login changed so ready for input');
     populateUserData();			

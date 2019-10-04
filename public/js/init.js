@@ -145,6 +145,9 @@
 
 		// dispatch an event to the document to inform them that we are initialised
 		document.dispatchEvent(new Event('documentinitialised'));
+
+		// update the display of the firebase user
+		updateFirebaseUserDisplay(getFirebaseUser());
 	};
 
 	function importHtmlToElement(elmnt, isLastElement) {
