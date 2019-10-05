@@ -186,6 +186,8 @@ function updateFirebaseUserItems(user) {
 
 function updateFirebaseUserDisplay(user) {
     // update the dispay according the user being logged on or not
+    var signIn = document.getElementById('firebaseSignIn');
+    var signedIn = document.getElementById('firebaseSignedIn');
     if (user) {
         // User is signed in.
         signIn.style.display = 'none';
