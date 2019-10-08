@@ -69,7 +69,9 @@
 			</div>
 			<div style="display: none">
 				<!-- a hidden div to place the templates to use to create the lesson plan-->
-				<span id="template-lesson-container" class="lesson_container" style="padding:10px"><a id="template-lesson-button" class="lesson_selector button">Lesson One</a></span>
+				<span id="template-lesson-container" class="lesson_container" style="padding:10px">
+					<a id="template-lesson-button" class="lesson_selector button">Lesson One</a>
+				</span>
 			</div>
 			<div id="lessons">
 				
@@ -78,6 +80,7 @@
 				<header class="major">
 					<h2 id='lesson_name'>Title</h2>
 					<p id='lesson_subtitle'>This is the lesson subtitle here.</p>
+					<progress id="progress_display" max="1" value="0.85"></progress>
 				</header>
 			</div>
 			<div id="lesson_progress_container">
@@ -88,7 +91,7 @@
 					<a id="lesson_progress_0.5" class="lesson_progress_selector button" onclick="setLessonProgress(0.5)">Understood</a>
 				</span>
 				<span class="lesson_container" style="padding:10px">
-					<a id="lesson_progress_1" class="lesson_progress_selector button" onclick="setLessonProgress(1)">Mastered</a>
+					<a id="lesson_progress_1" class="lesson_progress_selector button" onclick="setLessonProgress(1.0)">Mastered</a>
 				</span>
 			</div>
 		</div>

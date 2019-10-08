@@ -148,6 +148,8 @@ function showLessonProgress(progress) {
             buttons[i].classList.remove("special");
         }
     }
+
+    document.getElementById('progress_display').value = progress;
 }
 
 function onClickLesson(lessonRef) {
