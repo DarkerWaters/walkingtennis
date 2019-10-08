@@ -54,7 +54,8 @@ function displayLessonPlan(lessonsDiv, data) {
         child = lessonsDiv.lastElementChild; 
     }
     // find the templates to use
-    var templateLessonButton = document.getElementById('template-lesson-button');
+    var templateLessonContainer = document.getElementById('template-lesson-container');
+
     // and put the lessons back in
     var lessonRefs = data['lessons'];
     var lessonNames = data['lessons_names'];
@@ -64,13 +65,64 @@ function displayLessonPlan(lessonsDiv, data) {
         if (i < lessonNames.length) {
             lessonName = lessonNames[i];
         }
-        // create the button
-        var lessonButton = templateLessonButton.cloneNode(true);
+        // create the button container - all included
+        var lessonContainer = templateLessonContainer.cloneNode(true);
+        // without the ID (won't be unique)
+        lessonContainer.id = lessonRef + 'container';
+        // and put this container into the document and remember the one added
+        lessonContainer = lessonsDiv.appendChild(lessonContainer);
+        
+        // this container contains the button, find the button
+        var lessonButton = lessonContainer.querySelector('#template-lesson-button');
+        // and set the ID and the name properly
         lessonButton.id = lessonRef;
         lessonButton.innerHTML = lessonName;
-        lessonButton.setAttribute("onClick", "showLessonContent('" + lessonRef + "')");
-        // add to the div
-        lessonsDiv.appendChild(lessonButton);
+        lessonButton.setAttribute("onClick", "onClickLesson('" + lessonRef + "')");
+        // reveal the whole container
+        lessonContainer.style.display = null;
+    }
+
+    // get the last lesson the user accessed and select this if we can
+    var user = getFirebaseUser();
+    if (user) {
+        // there is a user, get the data
+        getFirebaseUserData(user, function(userData) {
+            // we have the data, is there a last 'coaching_lesson' reference
+            if (userData) {
+                var lessonRef = userData['last_coaching_lesson'];
+                if (lessonRef) {
+                    // have one, select this button
+                    showLessonContent(lessonRef);
+                }
+            }
+            var c
+        },
+        function() {
+            // failed to get the data, this is ok - it will just not have one selected
+            console.log("there is no last lesson to select by default");
+        })
+    }
+}
+
+function onClickLesson(lessonRef) {
+    // they clicked a button then, show the content
+    showLessonContent(lessonRef);
+    // and also remember they last looked at this one
+    var user = getFirebaseUser();
+    if (user) {
+        // there is a user, this is the document we want to change
+        var userRef = firebase.firestore().collection("users").doc(user.uid);
+        // set the data to the lesson ref we just clicked on
+        return userRef.update({
+            last_coaching_lesson: lessonRef
+        })
+        .then(function() {
+            console.log("last_coaching_lesson successfully updated!");
+        })
+        .catch(function(error) {
+            // The document probably doesn't exist.
+            console.error("Error updating last_coaching_lesson: ", error);
+        });
     }
 }
 
@@ -112,7 +164,6 @@ function displayLessonContent(lessonData) {
     removeLessonContent()
     var lessonContent = document.getElementById('lesson_content');
     document.getElementById('lesson_name').innerHTML = lessonData['name'];
-
     document.getElementById('lesson_content').style.display = null;
 }
 

@@ -16,23 +16,28 @@ service cloud.firestore {
     	return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.expiry_member == null ||
       			 get(/databases/$(database)/documents/users/$(request.auth.uid)).data.expiry_member > request.time
     }
+    // helper to check if they are updating something important
+    function notUpdating(field) {
+      return !(field in request.resource.data) || resource.data[field] == request.resource.data[field]
+    }
+    // there is no invalid change if not changing the private things here
+    function noInvalidDataChange() {
+    	return notUpdating('isAdmin') &&
+            notUpdating('joined_date') &&
+      			notUpdating('expiry_coach') &&
+            notUpdating('expiry_member');
+    }
     // is the coaching subscription still active
 		function isCoach() {
     	return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.expiry_coach == null ||
-      			 get(/databases/$(database)/documents/users/$(request.auth.uid)).data.expiry_coach > request.time
+      			 get(/databases/$(database)/documents/users/$(request.auth.uid)).data.expiry_coach > request.time;
     }
-  
     // Allow public read access to user data, but only content owners can write
     match /users/{userId}/{documents=**} {
-      allow update : if isAdmin;
-      allow read, delete: if isRequestingUser(userId);
+	    allow read, delete: if isRequestingUser(userId);
       // Disallow the creation of users with active subscriptions / admin rights
-      allow create: if (
-      	!("isAdmin" in request.resource.data) &&
-        !("expiry_coach" in request.resource.data) &&
-        !("expiry_member" in request.resource.data) &&
-        isRequestingUser(userId)
-        );
+      allow update : if (noInvalidDataChange() && isRequestingUser(userId)) || isAdmin();
+      allow create: if noInvalidDataChange() && isRequestingUser(userId);
     }
     match /lesson_plans/{documents=**} {
     	// only allow administrators to create lessons
