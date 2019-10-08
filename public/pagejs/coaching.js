@@ -1,3 +1,5 @@
+var currentLessonRef;
+
 function displayCoachingData(user) {
     // show all the coaching data now, first hide the warning that you are not a coach
     document.getElementById('not_logged_in').style.display = 'none';
@@ -92,10 +94,9 @@ function displayLessonPlan(lessonsDiv, data) {
                 var lessonRef = userData['last_coaching_lesson'];
                 if (lessonRef) {
                     // have one, select this button
-                    showLessonContent(lessonRef);
+                    showLessonContent(lessonRef, userData);
                 }
             }
-            var c
         },
         function() {
             // failed to get the data, this is ok - it will just not have one selected
@@ -104,29 +105,75 @@ function displayLessonPlan(lessonsDiv, data) {
     }
 }
 
-function onClickLesson(lessonRef) {
-    // they clicked a button then, show the content
-    showLessonContent(lessonRef);
-    // and also remember they last looked at this one
-    var user = getFirebaseUser();
-    if (user) {
-        // there is a user, this is the document we want to change
-        var userRef = firebase.firestore().collection("users").doc(user.uid);
-        // set the data to the lesson ref we just clicked on
-        return userRef.update({
-            last_coaching_lesson: lessonRef
-        })
-        .then(function() {
-            console.log("last_coaching_lesson successfully updated!");
-        })
-        .catch(function(error) {
-            // The document probably doesn't exist.
-            console.error("Error updating last_coaching_lesson: ", error);
-        });
+function setLessonProgress(progress) {
+    // set the progress of this lesson
+    showLessonProgress(progress);
+    // set the progress of the currently active lesson to the specified progress
+    if (currentLessonRef) {
+        var user = getFirebaseUser();
+        if (user) {
+            // there is a user, this is the document we want to change
+            var userRef = firebase.firestore().collection("users").doc(user.uid);
+            // update the progress for this lesson
+            var variableName = 'progress_' + currentLessonRef;
+            var usersUpdate = {};
+            usersUpdate[variableName] = progress;
+            return userRef.update(usersUpdate).then(function() {
+                // cool
+            })
+            .catch(function(error) {
+                // something wrong
+                console.error("Error updating lesson progress: ", error);
+            });
+        }
+    }
+    else {
+        // no current lesson to set
+        console.log("no lesson selected to set")
     }
 }
 
-function showLessonContent(lessonRef) {
+function showLessonProgress(progress) {
+    // find the button that represents this progress level and select it
+    
+    // remove the 'special' from any currently pressed buttons
+    var buttons = document.getElementsByClassName("lesson_progress_selector");
+    for (var i = 0; i < buttons.length; i++) {
+        if (buttons[i].id === 'lesson_progress_' + progress) {
+            // this is the special one (it's id is the lesson_progress_1 or whatever the progress currently is)
+            buttons[i].classList.add("special");
+        }
+        else {
+            // this is not the clicked on
+            buttons[i].classList.remove("special");
+        }
+    }
+}
+
+function onClickLesson(lessonRef) {
+    // they clicked a button then, show the content
+    // this needs the user data while we are here
+    var user = getFirebaseUser();
+    if (user) {
+        // there is a user, get the data
+        getFirebaseUserData(user, function(userData) {
+            // we have the data, is there a last 'coaching_lesson' reference
+            showLessonContent(lessonRef, userData);
+        },
+        function() {
+            // failed to get the data, this is ok - it will just not have one selected
+            showLessonContent(lessonRef, null);
+        });
+    }
+    else {
+        // no user, doesn't mean we can't show the content
+        showLessonContent(lessonRef, null);
+    }
+}
+
+function showLessonContent(lessonRef, userData) {
+    // remember this reference to the currently selected lesson
+    currentLessonRef = lessonRef;
     // remove the 'special' from any currently pressed buttons
     var buttons = document.getElementsByClassName("lesson_selector");
     for (var i = 0; i < buttons.length; i++) {
@@ -140,6 +187,9 @@ function showLessonContent(lessonRef) {
         }
     }
     removeLessonContent();
+
+    // if we have user data then we can show the progress of this lesson
+    showLessonProgress(userData['progress_' + lessonRef]);
 
     // populate the div with the lesson content from firebase
     var db = firebase.firestore();

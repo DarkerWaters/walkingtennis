@@ -188,17 +188,19 @@ function updateFirebaseUserDisplay(user) {
     // update the dispay according the user being logged on or not
     var signIn = document.getElementById('firebaseSignIn');
     var signedIn = document.getElementById('firebaseSignedIn');
-    if (user) {
-        // User is signed in.
-        signIn.style.display = 'none';
-        signedIn.style.display = null;
-        signedIn.innerHTML  = '<a href="profile.html">' + user.displayName + '</a>';
-        console.log('user ' + user.displayName + " logged in");
-    } else {
-        // No user is signed in.
-        signIn.style.display = null;
-        signedIn.style.display = 'none';
-        console.log('no user logged in');
+    if (signIn && signedIn) {
+        if (user) {
+            // User is signed in.
+            signIn.style.display = 'none';
+            signedIn.style.display = null;
+            signedIn.innerHTML  = '<a href="profile.html">' + user.displayName + '</a>';
+            console.log('user ' + user.displayName + " logged in");
+        } else {
+            // No user is signed in.
+            signIn.style.display = null;
+            signedIn.style.display = 'none';
+            console.log('no user logged in');
+        }
     }
     // update user role details
     updateFirebaseUserItems(user);
