@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="description" content="" />
+	<meta name="keywords" content="" />
+	<title>Coaching Walking Tennis</title>
+
+	<!-- update the version number as needed -->
+	<script defer src="/__/firebase/7.0.0/firebase-app.js"></script>
+	<!-- include only the Firebase features as you need -->
+	<script defer src="/__/firebase/7.0.0/firebase-auth.js"></script>
+	<script defer src="/__/firebase/7.0.0/firebase-database.js"></script>
+	<script defer src="/__/firebase/7.0.0/firebase-messaging.js"></script>
+	<script defer src="/__/firebase/7.0.0/firebase-storage.js"></script>
+	<script defer src="/__/firebase/7.0.0/firebase-firestore.js"></script>
+	<!-- add the UI for logging in-->
+	<script src="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.js"></script>
+	<link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.css" />
+	<!-- initialize the SDK after all desired features are loaded -->
+	<script defer src="/__/firebase/init.js"></script>
+
+	<!-- add our page specific javascript here -->
+	<script src="pagejs/admin.js"></script>
+
+	<!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
+	<script src="js/jquery.min.js"></script>
+	<script src="js/jquery.dropotron.min.js"></script>
+	<script src="js/jquery.scrollgress.min.js"></script>
+	<script src="js/jquery.scrolly.min.js"></script>
+	<script src="js/jquery.slidertron.min.js"></script>
+	<script src="js/skel.min.js"></script>
+	<script src="js/skel-layers.min.js"></script>
+	<script src="js/firebase.js"></script>
+	<script src="js/init.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/walking-tennis.css" />
+	
+	<noscript>
+		<link rel="stylesheet" href="css/skel.css" />
+		<link rel="stylesheet" href="css/style.css" />
+		<link rel="stylesheet" href="css/style-xlarge.css" />
+	</noscript>
+	<!--[if lte IE 9]><link rel="stylesheet" href="css/ie/v9.css" /><![endif]-->
+	<!--[if lte IE 8]><link rel="stylesheet" href="css/ie/v8.css" /><![endif]-->
+</head>
+
+<body class="landing">
+	<!-- Header -->
+	<header id="header" class="skel-layers-fixed">
+		<h1><a href="index.html">Walking Tennis</a></h1>
+		<nav id="nav" include-html="main_menu.html"></nav>
+	</header>
+
+	<!-- Main -->
+	<section id="main" class="wrapper style1">
+		<div class="container">
+			<header class="major">
+				<h2>Administrator's Page</h2>
+				<p>Hopefully helpful editing for the owners of Walking Tennis</p>
+			</header>
+			<div id="not_logged_in" style="display: none">
+				<h2>Sorry but access to this portion of the site is restricted to Admin members only.</h2>
+				<p>Please log-in to your account to access this page.</p>
+			</div>
+			<div id="not_a_admin" style="display: none">
+				<h2>Sorry but your membership does not include admin</h2>
+				<p>Please go to your <a href="profile.html">profile</a> to update your subscription</p>
+			</div>
+
+			<section>
+				<header class="major">
+					<h2>Lessons Available</h2>
+				</header>
+				<!-- Form -->
+				<form method="post" action="#">
+					<div style="display: none">
+						<!-- a hidden div to place the templates to use to create the lesson plan-->
+						<span id="template-lesson-container" class="lesson_container">
+							<a id="template-lesson-button" class="lesson_selector button">Lesson One</a>
+						</span>
+					</div>
+					<div class="row uniform">
+						<h3>Select Lesson Plan / Collection:</h3>
+						<div class="4u 12u(2)">
+							<input type="radio" id="members" name="lesson_collection" checked onclick="setLessonPlan('everyone', 'lessons')">
+							<label for="members">Members</label>
+						</div>
+						<div class="4u 12u(2)">
+							<input type="radio" id="coaches" name="lesson_collection" onclick="setLessonPlan('coaching', 'coaching_lessons')">
+							<label for="coaches">Coaches</label>
+						</div>
+					</div>
+					<div class="row uniform">
+						<!--
+						<div class="6u 12u(3)">
+							<input type="text" name="lesson_plan_entry_name" id="lesson_plan_entry_name" value="" placeholder="Lesson n" />
+						</div>
+						-->
+						<div class="6u 12u(3)">
+							<a id="add_lesson_button" class="lesson_selector button" onclick="addLessonToCollection()">Add lesson to collection</a>
+						</div>
+					</div>
+					
+					<header class="major">
+						<h2>Current Lessons in Collection</h2>
+					</header>
+
+					<div id="lessons">
+					</div>
+					<div id="lesson_content" style="display: none">
+						<header class="major">
+							<h3 id="lesson_ref_title">LESSON REFERENCE</h2>
+						</header>
+						<div class="row uniform">
+							<div class="6u 12u(3)">
+								<input type="text" name="name" id="name" value="" placeholder="Name" />
+								<label for="subtitle">Title of the lesson (can be different that in the lesson plan)</label>
+							</div>
+							<div class="6u 12u(3)">
+								<input type="text" name="subtitle" id="subtitle" value="" placeholder="Subtitle" />
+								<label for="subtitle">Subtitle for the lesson</label>
+							</div>
+						</div>
+						<div class="row uniform">
+							<div class="6u 12u(1)">
+								<input type="text" name="progress_options" id="progress_options" value="" placeholder="Looked At:0.1,Understood:0.5,Mastered:1.0" />
+								<label for="progress_options">The progress options (title:value,Example:0.5,Min:0.1,Max:1</label>
+							</div>
+						</div>
+						<div class="row uniform">
+							<div class="12u">
+							<ul class="actions">
+								<li><input type="submit" value="Save Lesson" /></li>
+								<li><input type="reset" value="Reset" class="alt" /></li>
+							</ul>
+						</div>
+					</div>
+				</form>
+			</section>
+		</div>
+	</section>
+
+
+	<!-- Footer -->
+	<footer id="footer" include-html="footer.html"></footer>
+</body>
+
+</html>

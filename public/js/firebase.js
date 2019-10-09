@@ -148,15 +148,18 @@ function isFirebaseUserCoach(firebaseUserData) {
     return checkDataExpiryDate(firebaseUserData, "expiry_coach");
 }
 
+function isFirebaseUserAdmin(firebaseUserData) {
+    return firebaseUserData['isAdmin'];
+}
+
 function updateFirebaseUserItems(user) {
     // show the extra buttons when logging in changes
     if (user) {	
         getFirebaseUserData(user, function(userData) {
-            // we have the data
+            // we have the data, display the coaching things if we are a coach
             var coachingItems = document.getElementsByClassName("menu_coaching");
             var isCoach = isFirebaseUserCoach(userData);
-            var i;
-            for (i = 0; i < coachingItems.length; i++) {
+            for (var i = 0; i < coachingItems.length; i++) {
                 if (isCoach) {
                     coachingItems[i].style.display = null;
                 }
@@ -164,22 +167,39 @@ function updateFirebaseUserItems(user) {
                     coachingItems[i].style.display = 'none';
                 }
             }
+            // and admin if we are admin
+            var adminItems = document.getElementsByClassName("menu_admin");
+            var isAdmin = isFirebaseUserAdmin(userData);
+            for (var i = 0; i < adminItems.length; i++) {
+                if (isAdmin) {
+                    adminItems[i].style.display = null;
+                }
+                else {
+                    adminItems[i].style.display = 'none';
+                }
+            }
         },
         function() {
             // failed to get the data
             var coachingItems = document.getElementsByClassName("menu_coaching");
-            var i;
-            for (i = 0; i < coachingItems.length; i++) {
+            for (var i = 0; i < coachingItems.length; i++) {
                 coachingItems[i].style.display = 'none';
+            }
+            var adminItems = document.getElementsByClassName("menu_admin");
+            for (var i = 0; i < adminItems.length; i++) {
+                adminItems[i].style.display = 'none';
             }
         })
     }
     else {
         // not logged in
         var coachingItems = document.getElementsByClassName("menu_coaching");
-        var i;
-        for (i = 0; i < coachingItems.length; i++) {
+        for (var i = 0; i < coachingItems.length; i++) {
             coachingItems[i].style.display = 'none';
+        }
+        var adminItems = document.getElementsByClassName("menu_admin");
+        for (var i = 0; i < adminItems.length; i++) {
+            adminItems[i].style.display = 'none';
         }
     }
 }

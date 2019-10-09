@@ -43,7 +43,7 @@ service cloud.firestore {
     	// only allow administrators to create lessons
     	allow update, delete, create : if isAdmin();
       // allow all members to read all lessons
-      allow read: if isMember() || isAdmin();
+      allow read: if isMember();
     }
     match /coaching_lessons/{documents=**} {
     	// only allow administrators to create lessons
@@ -55,7 +55,7 @@ service cloud.firestore {
     	// only allow administrators to create lessons
     	allow update, delete, create, write : if isAdmin();
       // allow anyone to read lessons
-      allow read: if true;
+      allow read: if isMember();
     }
   }
 }
