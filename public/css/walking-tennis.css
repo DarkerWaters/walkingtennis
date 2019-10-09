@@ -2,11 +2,15 @@
 @import url("https://fonts.googleapis.com/css?family=Lato:300,700");
 
 .lesson_container {
-	padding: 0 2em;
+	padding: 0 1em;
 }
 
 .horizontal_container {
 	width: 30em;
 	overflow-x: auto;
 	white-space: nowrap;
+}
+
+.progress_container {
+	text-align: center;
 }

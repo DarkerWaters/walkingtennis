@@ -1,4 +1,5 @@
 var currentLessonRef;
+var currentLessonProgress;
 
 function displayCoachingData(user) {
     // show all the coaching data now, first hide the warning that you are not a coach
@@ -176,6 +177,8 @@ function onClickLesson(lessonRef) {
 function showLessonContent(lessonRef, userData) {
     // remember this reference to the currently selected lesson
     currentLessonRef = lessonRef;
+    currentLessonProgress = userData['progress_' + lessonRef];
+
     // remove the 'special' from any currently pressed buttons
     var buttons = document.getElementsByClassName("lesson_selector");
     for (var i = 0; i < buttons.length; i++) {
@@ -189,9 +192,6 @@ function showLessonContent(lessonRef, userData) {
         }
     }
     removeLessonContent();
-
-    // if we have user data then we can show the progress of this lesson
-    showLessonProgress(userData['progress_' + lessonRef]);
 
     // populate the div with the lesson content from firebase
     var db = firebase.firestore();
@@ -217,6 +217,37 @@ function displayLessonContent(lessonData) {
     var lessonContent = document.getElementById('lesson_content');
     document.getElementById('lesson_name').innerHTML = lessonData['name'];
     document.getElementById('lesson_content').style.display = null;
+
+    var progressOptions = lessonData['progress_options'];
+    if (progressOptions) {
+        // get the template progress button
+        var progressButtonTemplate = document.getElementById('template-lesson-progress');
+        var progressContainer = lessonContent.querySelector('#lesson_progress_container');
+        // remove all the progress buttons from the container to start clean
+        var child = progressContainer.lastElementChild;  
+        while (child) { 
+            progressContainer.removeChild(child); 
+            child = progressContainer.lastElementChild; 
+        } 
+        // there are options for progress to be recorded, get the options and create the buttons for them here
+        var optionsArray = progressOptions.split(',');
+        for (var i = 0; i < optionsArray.length; ++i) {
+            // for each option, create the progress button
+            var progressButtonParent = progressButtonTemplate.cloneNode(true);
+            // get rid of the non-unique id
+            progressButtonParent.id = null;
+            var progressButton = progressButtonParent.querySelector('#lesson-progress-button');
+            var settingsArray = optionsArray[i].split(':');
+            progressButton.innerHTML = settingsArray[0];
+            progressButton.id = 'lesson_progress_' + settingsArray[1];
+            progressButton.setAttribute("onClick", "setLessonProgress('" + settingsArray[1] + "')");
+            // add to the container
+            progressContainer.appendChild(progressButtonParent);
+        }
+    }
+
+    // show the current progress
+    showLessonProgress(currentLessonProgress);
 }
 
 function removeLessonContent() {
