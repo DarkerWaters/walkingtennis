@@ -51,5 +51,11 @@ service cloud.firestore {
       // allow coaches to read all lessons
       allow read: if isCoach() || isAdmin();
     }
+    match /lessons/{documents=**} {
+    	// only allow administrators to create lessons
+    	allow update, delete, create, write : if isAdmin();
+      // allow anyone to read lessons
+      allow read: if true;
+    }
   }
 }

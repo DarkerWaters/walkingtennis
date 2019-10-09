@@ -23,6 +23,7 @@
 	<script defer src="/__/firebase/init.js"></script>
 
 	<!-- add our page specific javascript here -->
+	<script src="pagejs/learning.js"></script>
 
 	<!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
 	<script src="js/jquery.min.js"></script>
@@ -52,22 +53,42 @@
 		<nav id="nav" include-html="main_menu.html"></nav>
 	</header>
 
-
 	<!-- Main -->
 	<section id="main" class="wrapper style1">
 		<div class="container">
 			<header class="major">
 				<h2>Learning to play Walking Tennis</h2>
-					<p>This is a great starting point for both walking and regular tennis.</p>
+				<p>This is a great starting point for both walking and regular tennis.</p>
 			</header>
-		</div>
-
-		<div class="container">
-			<div class="row">
-				<span class="image left fit"><img src="images/logos/coming_soon.png" alt="coming soon"/></span>
-				<br/>We will be creating a series of lessons that let you track your progress via your log-on as you develop.
-				<br/><br/>We are working as hard as we can, but we want the content to be right and well presented, which takes time.
-				<br/><br/><br/>While we are working on our site, please use our social media avenues for videos and posts. Thank you for your patience.
+			<div id="not_logged_in" style="display: none">
+				<h2>Sorry but access to this portion of the site is restricted to members only.</h2>
+				<p>Please log-in or create an account to access our lessons and much more, it's totally free!</p>
+			</div>
+			<div id="not_a_member" style="display: none">
+				<h2>Sorry but your membership does not include lessons</h2>
+				<p>Please go to your <a href="profile.html">profile</a> to update your subscription</p>
+			</div>
+			<div style="display: none">
+				<!-- a hidden div to place the templates to use to create the lesson plan-->
+				<span id="template-lesson-container" class="lesson_container">
+					<a id="template-lesson-button" class="lesson_selector button">Lesson One</a>
+				</span>
+				<span id="template-lesson-progress" class="lesson_container">
+					<a id="lesson-progress-button" class="lesson_progress_selector button">Record Progress</a>
+				</span>
+			</div>
+			<div id="lessons">
+				
+			</div>
+			<div id="lesson_content" style="display: none">
+				<header class="major">
+					<h2 id='lesson_name'>Title</h2>
+					<p id='lesson_subtitle'>This is the lesson subtitle here.</p>
+					<progress id="progress_display" max="1" value="0.85"></progress>
+				</header>
+				<div id="lesson_progress_container" class="progress_container" >
+					<!-- this is where the progress buttons will go -->
+				</div>
 			</div>
 		</div>
 	</section>

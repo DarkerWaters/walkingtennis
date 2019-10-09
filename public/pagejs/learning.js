@@ -1,17 +1,17 @@
 var currentLessonRef;
 var currentLessonProgress;
 
-function displayCoachingData(user) {
-    // show all the coaching data now, first hide the warning that you are not a coach
+function displayMembersData(user) {
+    // show all the Members data now, first hide the warning that you are not a coach
     document.getElementById('not_logged_in').style.display = 'none';
-    document.getElementById('not_a_coach').style.display = 'none';
+    document.getElementById('not_a_member').style.display = 'none';
                 
     // now get all the lessons and show them all here
     var lessonsDiv = document.getElementById('lessons');
     // populate this div with the lessons from firebase
     var db = firebase.firestore();
     // get the data for the user
-    const docRef = db.collection('lesson_plans').doc('coaching')
+    const docRef = db.collection('lesson_plans').doc('everyone')
     docRef.get().then(function(doc) {
         if (doc.exists) {
             // do stuff with the data
@@ -27,18 +27,18 @@ function displayCoachingData(user) {
     });
 }
 
-function hideCoachingData(user) {
-    // hide all the coaching data
+function hideMembersData(user) {
+    // hide all the Members data
     document.getElementById('lessons').style.display = 'none';
     if (user) {
-        // have a user, but not a coach, tell them to upgrade
+        // have a user, but not a member, tell them to upgrade
         document.getElementById('not_logged_in').style.display = 'none';
-        document.getElementById('not_a_coach').style.display = null;
+        document.getElementById('not_a_member').style.display = null;
     }
     else {
         // we are not logged in, ask the user to log in
         document.getElementById('not_logged_in').style.display = null;
-        document.getElementById('not_a_coach').style.display = 'none';
+        document.getElementById('not_a_member').style.display = 'none';
     }
     // remove everything from the lesson plan div
     var lessonsDiv = document.getElementById('lessons');
@@ -90,9 +90,9 @@ function displayLessonPlan(lessonsDiv, data) {
     if (user) {
         // there is a user, get the data
         getFirebaseUserData(user, function(userData) {
-            // we have the data, is there a last 'coaching_lesson' reference
+            // we have the data, is there a last 'members_lesson' reference
             if (userData) {
-                var lessonRef = userData['last_coaching_lesson'];
+                var lessonRef = userData['last_members_lesson'];
                 if (lessonRef) {
                     // have one, select this button
                     showLessonContent(lessonRef, userData);
@@ -119,7 +119,7 @@ function setLessonProgress(progress) {
             var variableName = 'progress_' + currentLessonRef;
             var usersUpdate = {};
             usersUpdate[variableName] = progress;
-            usersUpdate['last_coaching_lesson'] = currentLessonRef;
+            usersUpdate['last_members_lesson'] = currentLessonRef;
             return userRef.update(usersUpdate).then(function() {
                 // cool
             })
@@ -168,7 +168,7 @@ function onClickLesson(lessonRef) {
     if (user) {
         // there is a user, get the data
         getFirebaseUserData(user, function(userData) {
-            // we have the data, is there a last 'coaching_lesson' reference
+            // we have the data, is there a last 'members_lesson' reference
             showLessonContent(lessonRef, userData);
         },
         function() {
@@ -204,7 +204,7 @@ function showLessonContent(lessonRef, userData) {
     // populate the div with the lesson content from firebase
     var db = firebase.firestore();
     // get the data for the user
-    const docRef = db.collection('coaching_lessons').doc(lessonRef)
+    const docRef = db.collection('lessons').doc(lessonRef)
     docRef.get().then(function(doc) {
         if (doc.exists) {
             // show this lesson content
@@ -268,27 +268,27 @@ function populateUserData() {
     var user = getFirebaseUser();
     if (user) {
         // we are logged in
-        displayCoachingData(user);
+        displayMembersData(user);
         // get the user data from firebase here
         getFirebaseUserData(user, function(data) {
-            // we have the user data here, set the data correcly
+            // we have the user data here, set the data correctly
             if (isFirebaseUserCoach(data)) {
                 // we are a coach
-                displayCoachingData(user);
+                displayMembersData(user);
             }
             else {
                 // we are not a coach
-                hideCoachingData(user);
+                hideMembersData(user);
             }
         }, function() {
             // this is the failure to get the data, do our best I suppose
-            hideCoachingData(user);
+            hideMembersData(user);
             console.log("Failed to get the firestore user data for " + user);
         });
     }
     else {
         // we are not logged in, ask the user to log in
-        hideCoachingData(user);
+        hideMembersData(user);
     }
 };
 
