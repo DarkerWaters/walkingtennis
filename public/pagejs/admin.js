@@ -6,6 +6,7 @@ var activeLessonPlan = 'everyone';
 function setLessonPlan(lessonPlan, collectionName) {
     activeLessonPlan = lessonPlan;
     activeLessonCollection = collectionName;
+    removeLessonContent();
 
     var user = getFirebaseUser();
     if (user) {
@@ -125,6 +126,7 @@ function hideAdminData(user) {
         lessonsDiv.removeChild(child); 
         child = lessonsDiv.lastElementChild; 
     }
+    removeLessonContent();
 }
 
 function displayLessonPlan(lessonsDiv, data) {
