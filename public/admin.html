@@ -80,6 +80,45 @@
 						<span id="template-lesson-container" class="lesson_container">
 							<a id="template-lesson-button" class="lesson_selector button">Lesson One</a>
 						</span>
+						<!-- the div that contains the content for a lesson section-->
+						<div id="template-lesson-section">
+							<header class="major">
+								<h3 id="lesson_section_ref_title">SECTION REFERENCE</h2>
+								<a id="delete_lesson_section_button" class="lesson_selector button">Delete</a>
+								<a id="save_lesson_section_button" class="lesson_selector button">Save</a>
+							</header>
+							<div class="row uniform">
+								<div class="6u 12u(3)">
+									<input type="number" name="priority" id="section_priority" value="" placeholder="0" />
+									<label for="number">Priority of the section (higher earlier and zero to hide)</label>
+								</div>
+							</div>
+							<div class="row uniform">
+								<div class="6u 12u(3)">
+									<input type="text" name="title" id="section_title" value="" placeholder="Title" />
+									<label for="title">Title of the lesson section</label>
+								</div>
+								<div class="6u 12u(3)">
+									<textarea name="subtitle" id="section_subtitle" placeholder="Subtitle" rows="2"></textarea>
+									<label for="subtitle">Subtitle for the lesson</label>
+								</div>
+							</div>
+							<div class="row uniform">
+								<div class="6u 12u(3)">
+									<input type="text" name="video" id="section_video" value="" />
+									<label for="video">URL to the Embedded video (IMPORTANT-HAS TO BE THE LINK FROM THE EMBED SHARE</label>
+								</div>
+								<div class="6u 12u(3)">
+									<input type="text" name="image" id="section_image" value="" />
+									<label for="video">URL to the Image</label>
+								</div>
+							</div>
+							<div class="row uniform">
+								<div class="12u">
+									<textarea name="content" id="section_text" placeholder="The textual content of the lesson sections (can include HTML)" rows="6"></textarea>
+								</div>
+							</div>
+						</div>
 					</div>
 					<div class="row uniform">
 						<h3>Select Lesson Plan / Collection:</h3>
@@ -112,14 +151,16 @@
 					<div id="lesson_content" style="display: none">
 						<header class="major">
 							<h3 id="lesson_ref_title">LESSON REFERENCE</h2>
+							<a id="delete_lesson_button" class="lesson_selector button" onclick="deleteLessonFromCollection()">Delete</a>
+							<a id="save_lesson_button" class="lesson_selector button" onclick="saveLessonToCollection()">Save</a>
 						</header>
 						<div class="row uniform">
 							<div class="6u 12u(3)">
 								<input type="text" name="name" id="name" value="" placeholder="Name" />
-								<label for="subtitle">Title of the lesson (can be different that in the lesson plan)</label>
+								<label for="name">Title of the lesson (can be different that in the lesson plan)</label>
 							</div>
 							<div class="6u 12u(3)">
-								<input type="text" name="subtitle" id="subtitle" value="" placeholder="Subtitle" />
+								<textarea name="subtitle" id="subtitle" placeholder="Subtitle" rows="2"></textarea>
 								<label for="subtitle">Subtitle for the lesson</label>
 							</div>
 						</div>
@@ -130,13 +171,16 @@
 							</div>
 						</div>
 						<div class="row uniform">
-							<div class="12u">
-							<ul class="actions">
-								<li><a id="delete_lesson_button" class="lesson_selector button" onclick="deleteLessonFromCollection()">Delete</a></li>
-								<li><a id="save_lesson_button" class="lesson_selector button" onclick="saveLessonToCollection()">Save</a></li>
-								<!--<li><input type="submit" value="Save Lesson" /></li>-->
-								<li><input type="reset" value="Reset" class="alt" /></li>
-							</ul>
+							<hr/>
+							<header class="major">
+								<h3>LESSON DATA SECTIONS</h2>
+							</header>
+							<div class="6u 12u(3)">
+								<a id="add_lesson_section_button" class="lesson_selector button" onclick="addLessonSection()">Add lesson section</a>
+							</div>
+							<div id="lesson_section_container">
+								<!-- this is there the lesson sections will go-->
+							</div>
 						</div>
 					</div>
 				</form>

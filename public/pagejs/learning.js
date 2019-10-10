@@ -332,7 +332,6 @@ function resizeDocumentContentReset(source, idsToResize, targetSizeId, alternate
         alternateButton.style.display = null;
     }
     
-    var width = targetElement.offsetWidth;
     var idArray = idsToResize.split(',');
     for (var i = 0; i < idArray.length; ++i) {
         var elementToResize = commonParent.querySelector(idArray[i]);

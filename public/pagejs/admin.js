@@ -63,6 +63,34 @@ function addLessonToCollection() {
     });
 }
 
+function deleteLessonFromCollection() {
+    firebase.firestore().collection(activeLessonCollection).doc(currentLessonRef).delete().then(function() {
+        console.log("Document successfully deleted!");
+        removeLessonContent();
+        populateUserData();
+    }).catch(function(error) {
+        console.error("Error removing document: ", error);
+    });
+}
+
+function addLessonSection() {
+    // add a new section to the current lesson
+    firebase.firestore().collection(activeLessonCollection).doc(currentLessonRef).collection('contents').add({
+        title: "New Section",
+        subtitle: "A newly added section just now",
+        text: "add your text content here",
+        image: "add a URL to an image here, have to have either this, a video, or both!",
+        video: "add a !!!<embed>!!! URL to a YouTube video here, have to have either this, an image, or both!"
+    })
+    .then(function(newDocRef) {
+        // refresh the page
+        showLessonSections()
+    })
+    .catch(function(error) {
+        console.error("Error adding document: ", error);
+    });
+}
+
 function displayAdminData(user) {
     // show all the Admin data now, first hide the warning that you are not an admin user
     document.getElementById('not_logged_in').style.display = 'none';
@@ -212,26 +240,71 @@ function showLessonContent(lessonRef) {
     });
 }
 
+function showLessonSections() {
+    // show the sections for the current lesson loaded, first remove old ones
+    removeLessonSections();
+
+    // now get them all
+    // get all the sections in the lesson
+    firebase.firestore().collection('lessons/' + currentLessonRef + '/contents').get().then(
+        function (querySnapshot) {
+            // we have all the contents of the lesson now, put each content found back in
+            var sectionContainer = document.getElementById('lesson_section_container');
+            querySnapshot.forEach(function (doc) {
+                // doc.data() is never undefined for query doc snapshots
+                createLessonContentsDiv(sectionContainer, doc.id, doc.data());
+            });
+        }
+    );
+}
+
+function saveLessonToCollection() {
+    // get all the data from the page
+    var lessonData = {};
+    
+    lessonData['name'] = document.getElementById('name').value;
+    lessonData['subtitle'] = document.getElementById('subtitle').value;
+    lessonData['progress_options'] = document.getElementById('progress_options').value;
+
+    firebase.firestore().collection(activeLessonCollection).doc(currentLessonRef).set(lessonData).then(function() {
+        console.log("Document successfully updated");
+    }).catch(function(error) {
+        console.error("Error removing document: ", error);
+    });
+}
+
+function removeLessonSections() {
+    // get the parent for the sections
+    var sectionContainer = document.getElementById('lesson_section_container');
+    var child = sectionContainer.lastElementChild;  
+    while (child) { 
+        sectionContainer.removeChild(child); 
+        child = sectionContainer.lastElementChild; 
+    } 
+}
+
 function displayLessonContent(lessonData) {
     removeLessonContent()
     var lessonContent = document.getElementById('lesson_content');
-    document.getElementById('lesson_ref_title').innerHTML = currentLessonRef;
+    document.getElementById('lesson_ref_title').innerHTML = 'Lesson ' + currentLessonRef + ' top-level data';
+    
     document.getElementById('name').value = lessonData['name'];
     document.getElementById('subtitle').value = lessonData['subtitle'];
     
 
     var progressOptions = lessonData['progress_options'];
     document.getElementById('progress_options').value = progressOptions;
-    if (progressOptions) {
-        // show the progress options
-        
+    /*if (progressOptions) {
+        // show the progress options individually
         var optionsArray = progressOptions.split(',');
         for (var i = 0; i < optionsArray.length; ++i) {
             // for each option, create the fields to edit the option
             var settingsArray = optionsArray[i].split(':');
-            
         }
-    }
+    }*/
+
+    // show the sections that are available under this lesson
+    showLessonSections();
 
     // and show it
     lessonContent.style.display = null;
@@ -239,6 +312,64 @@ function displayLessonContent(lessonData) {
 
 function removeLessonContent() {
     document.getElementById('lesson_content').style.display = 'none';
+}
+
+function createLessonContentsDiv(contentsContainer, contentsRef, contents) {
+    // find the template and copy it to the contentsContainer before populating the relevant data
+    var contentsDiv = document.getElementById('template-lesson-section').cloneNode(true);
+    // reset the id - the id is for the template, not the pasted contents
+    contentsDiv.id = contentsRef;
+    // set the title to be useful
+    contentsDiv.querySelector('#lesson_section_ref_title').innerHTML = 'Section ' + contentsRef;
+    contentsDiv.querySelector('#delete_lesson_section_button').onclick = function() {deleteLessonSection(contentsRef);};
+    contentsDiv.querySelector('#save_lesson_section_button').onclick = function() {saveLessonSection(contentsRef, contentsDiv);};
+
+    // set all the dta on this cloned node
+    var priority = contentsDiv.querySelector('#section_priority');
+    var heading = contentsDiv.querySelector('#section_title');
+    var subtitle = contentsDiv.querySelector('#section_subtitle');
+    var image = contentsDiv.querySelector('#section_image');
+    var video = contentsDiv.querySelector('#section_video');
+    var text = contentsDiv.querySelector('#section_text');
+    
+    priority.value = contents['priority'];
+    heading.value = contents['title'];
+    subtitle.value = contents['subtitle'];
+    video.value = contents['video'];
+    image.value = contents['image'];
+    text.value = contents['text'];
+
+    // and append this div to the content
+    contentsContainer.appendChild(contentsDiv);
+}
+
+function saveLessonSection(sectionRef, sectionContainer) {
+    // get all the data from the page
+    var sectionData = {};
+    // get the data from the controls into this object
+    sectionData['priority'] = sectionContainer.querySelector('#section_priority').value;
+    sectionData['title'] = sectionContainer.querySelector('#section_title').value;
+    sectionData['subtitle'] = sectionContainer.querySelector('#section_subtitle').value;
+    sectionData['video'] = sectionContainer.querySelector('#section_video').value;
+    sectionData['image'] = sectionContainer.querySelector('#section_image').value;
+    sectionData['text'] = sectionContainer.querySelector('#section_text').value;
+    
+    // and send to firestore
+    firebase.firestore().collection(activeLessonCollection + '/' + currentLessonRef + '/contents').doc(sectionRef).set(sectionData).then(function() {
+        console.log("Document successfully updated");
+    }).catch(function(error) {
+        console.error("Error removing document: ", error);
+    });
+}
+
+function deleteLessonSection(sectionRef) {
+    // delete this section from the database
+    firebase.firestore().collection(activeLessonCollection + '/' + currentLessonRef + '/contents').doc(sectionRef).delete().then(function() {
+        console.log("Document successfully deleted!");
+        showLessonSections();
+    }).catch(function(error) {
+        console.error("Error removing document: ", error);
+    });
 }
 
 // need to manage the data in this page
