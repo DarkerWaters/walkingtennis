@@ -89,21 +89,23 @@ function displayAdminData(user) {
     });
     */
    // get all the lessons in the collection
-   db.collection(activeLessonCollection).get().then(function(querySnapshot) {
-    // clear all the current lessons
-    var child = lessonsDiv.lastElementChild;  
-    while (child) { 
-        lessonsDiv.removeChild(child); 
-        child = lessonsDiv.lastElementChild; 
-    }
-    // and put each lesson found back in
-    querySnapshot.forEach(function(doc) {
-        // doc.data() is never undefined for query doc snapshots
-        createLessonButton(lessonsDiv, doc.id, doc.data()['name']);
-    });
-    // show the result
-    lessonsDiv.style.display = null;
-});
+   db.collection(activeLessonCollection).get().then(
+       function(querySnapshot) {
+            // clear all the current lessons
+            var child = lessonsDiv.lastElementChild;  
+            while (child) { 
+                lessonsDiv.removeChild(child); 
+                child = lessonsDiv.lastElementChild; 
+            }
+            // and put each lesson found back in
+            querySnapshot.forEach(function(doc) {
+                // doc.data() is never undefined for query doc snapshots
+                createLessonButton(lessonsDiv, doc.id, doc.data()['name']);
+            });
+            // show the result
+            lessonsDiv.style.display = null;
+        }
+    );
 }
 
 function hideAdminData(user) {
