@@ -206,7 +206,7 @@ function showLessonContent(lessonRef, userData) {
     db.collection('coaching_lessons').doc(lessonRef).get().then(function(doc) {
         if (doc.exists) {
             // show this lesson content
-            displayLessonContent(doc.data());
+            displayLessonContent(lessonRef, doc.data());
         } else {
             // error
             removeLessonContent();
@@ -218,7 +218,7 @@ function showLessonContent(lessonRef, userData) {
     });
 }
 
-function displayLessonContent(lessonData) {
+function displayLessonContent(lessonRef, lessonData) {
     removeLessonContent()
     var lessonContent = document.getElementById('lesson_content');
     document.getElementById('lesson_name').innerHTML = lessonData['name'];
@@ -251,10 +251,155 @@ function displayLessonContent(lessonData) {
             // add to the container
             progressContainer.appendChild(progressButtonParent);
         }
+
+        // so we need to get all the contents under this lesson, and add a div of content for each of them
+        var db = firebase.firestore();
+        // get all the lessons in the collection
+        db.collection('coaching_lessons/' + lessonRef + '/contents').where("priority", ">", 0).orderBy("priority").get().then(
+            function (querySnapshot) {
+                // we have all the contents of the lessonref now, clear all the old contents children
+                var contentsContainer = lessonContent.querySelector('#lesson_contents_container');
+                var child = contentsContainer.lastElementChild;
+                while (child) {
+                    contentsContainer.removeChild(child);
+                    child = contentsContainer.lastElementChild;
+                }
+                // and put each content found back in
+                querySnapshot.forEach(function (doc) {
+                    // doc.data() is never undefined for query doc snapshots
+                    createLessonContentsDiv(contentsContainer, doc.id, doc.data());
+                });
+            }
+        );
     }
 
     // show the current progress
     showLessonProgress(currentLessonProgress);
+}
+
+function resizeDocumentContent(source, idsToResize, targetSizeId, alternateButtonId) {
+    var commonParent = source;
+    var targetElement;
+    do {
+        // try to find the target under the common parent
+        targetElement = commonParent.querySelector(targetSizeId);
+        // keep looking up
+        commonParent = commonParent.parentElement;
+    } while (!targetElement && commonParent);
+
+    var alternateButton = commonParent.querySelector(alternateButtonId);
+    if (alternateButton) {
+        // change buttons
+        source.style.display = 'none';
+        alternateButton.style.display = null;
+    }
+    
+    var width = targetElement.offsetWidth;
+    var idArray = idsToResize.split(',');
+    for (var i = 0; i < idArray.length; ++i) {
+        var elementToResize = commonParent.querySelector(idArray[i]);
+        if (elementToResize) {
+            var heightFactor = elementToResize.offsetHeight / elementToResize.offsetWidth
+            if (!alternateButton && elementToResize.width == width) {
+                // no alternative button and the element is already big, shrink it back
+                elementToResize.removeAttribute('width');
+                elementToResize.removeAttribute('height');
+            }
+            else {
+                elementToResize.width = width;
+                elementToResize.height = heightFactor * width;
+            }
+        }
+    }
+}
+
+function resizeDocumentContentReset(source, idsToResize, targetSizeId, alternateButtonId) {
+    var commonParent = source;
+    var targetElement;
+    do {
+        // try to find the target under the common parent
+        targetElement = commonParent.querySelector(targetSizeId);
+        // keep looking up
+        commonParent = commonParent.parentElement;
+    } while (!targetElement && commonParent);
+
+    var alternateButton = commonParent.querySelector(alternateButtonId);
+    if (alternateButton) {
+        // change buttons
+        source.style.display = 'none';
+        alternateButton.style.display = null;
+    }
+    
+    var idArray = idsToResize.split(',');
+    for (var i = 0; i < idArray.length; ++i) {
+        var elementToResize = commonParent.querySelector(idArray[i]);
+        if (elementToResize) {
+            // reset the size
+            elementToResize.removeAttribute('width');
+            elementToResize.removeAttribute('height');
+        }
+    }
+}
+
+function createLessonContentsDiv(contentsContainer, contentsRef, contents) {
+    // find the template and copy it to the contentsContainer before populating the relevant data
+    var contentsDiv = document.getElementById('template-lesson-content').cloneNode(true);
+    // reset the id - the id is for the template, not the pasted contents
+    contentsDiv.id = contentsRef;
+    // set all the dta on this cloned node
+    var heading = contentsDiv.querySelector('#lesson_content_heading');
+    var subtitle = contentsDiv.querySelector('#lesson_content_subtitle');
+    var image, video, text;
+    
+    if (contents['image'] && contents['video']) {
+        // show the three part data section
+        contentsDiv.querySelector('#lesson_content_three').style.display = null;
+        video = contentsDiv.querySelector('#lesson_content_video_three');
+        image = contentsDiv.querySelector('#lesson_content_image_three');
+        text = contentsDiv.querySelector('#lesson_content_three_of_three');
+    }
+    else {
+        // show the two part data section
+        contentsDiv.querySelector('#lesson_content_two').style.display = null;
+        text = contentsDiv.querySelector('#lesson_content_two_of_two');
+        if (contents['image']) {
+            // show the image only
+            image = contentsDiv.querySelector('#lesson_content_image_two');
+        
+        }
+        else if (contents['video']) {
+            // show the video only
+            video = contentsDiv.querySelector('#lesson_content_video_two');
+            // show the button to grow this
+            contentsDiv.querySelector('#lesson_content_grow_video_two').style.display = null;
+        }
+        else {
+            //oops - need one or the other! show text only - will show the logo with the text
+            contentsDiv.querySelector('#lesson_content_image_two').style.display = null;
+        }
+    }
+
+    // set the contents then
+    if (heading) {
+        heading.innerHTML = contents['title'];
+    }
+    if (subtitle) {
+        subtitle.innerHTML = contents['subtitle'];
+    }
+    if (video) {
+        video.src = contents['video'];
+        video.style.display = null;
+    }
+    if (image) {
+        image.src = contents['image'];
+        image.style.display = null;
+    }
+    if (text) {
+        text.innerHTML = contents['text'];
+    }
+
+    // and append this div to the content
+    contentsContainer.appendChild(contentsDiv);
 }
 
 function removeLessonContent() {

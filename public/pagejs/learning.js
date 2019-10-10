@@ -150,7 +150,6 @@ function showLessonProgress(progress) {
             buttons[i].classList.remove("special");
         }
     }
-
     var progressControl = document.getElementById('progress_display');
     if (progress) {
         progressControl.value = progress;
