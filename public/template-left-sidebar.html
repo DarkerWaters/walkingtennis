@@ -49,7 +49,24 @@
 	<!-- Header -->
 	<header id="header" class="skel-layers-fixed">
 		<h1><a href="index.html">Walking Tennis</a></h1>
-		<nav id="nav" include-html="main_menu.html"></nav>
+		<nav id="nav">
+			<ul>
+				<li>
+					<div id="firebaseui-auth-container"></div>
+					<a href="#" id="firebaseSignIn" class="button special">Log In...</a>
+					<p href="#" id="firebaseSignedIn" style="display: none">Logged In...</p>
+				</li>
+				<li><a href="index.html">Home</a></li>
+				<li><a href="learning.html">Learn to Play</a></li>
+				<li class='menu_coaching' style="display: none"><a href="coaching.html">Coaching</a></li>
+				<li><a href="rules.html">Rules</a></li>
+				<li><a href="placestoplay.html">Places to Play</a></li>
+				<li class='menu_admin' style="display: none"><a href="admin.html">Admin</a></li>
+			</ul>
+			<div id="firebase_login_container" class='floating_fixed' style="display: none;" >
+				<span class="image fit"><img src="images/branding/logos/full_logo_256.png" alt="" /></span>
+			</div>
+		</nav>
 	</header>
 
 	<!-- Main -->
@@ -121,7 +138,28 @@
 	</section>
 
 	<!-- Footer -->
-	<footer id="footer" include-html="footer.html"></footer>
+	<footer id="footer">
+		<ul class="icons">
+			<li><a href="https://twitter.com/WalkingTennis" class="icon fa-twitter"><span class="label">Twitter</span></a>
+			</li>
+			<li><a href="https://www.facebook.com/playwalkingtennis" class="icon fa-facebook"><span
+						class="label">Facebook</span></a></li>
+			<li><a href="https://www.instagram.com/playwalkingtennis" class="icon fa-instagram"><span
+						class="label">Instagram</span></a></li>
+			<li><a href="https://www.youtube.com/channel/UCTW0Xa6AtSVrYr9b4u6tWJg" class="icon fa-youtube"><span
+						class="label">YouTube</span></a></li>
+			<li><a href="admincontact.html" class="icon fa-envelope"><span class="label">Envelope</span></a></li>
+		</ul>
+		<ul class="menu">
+			<li><a href="adminfaq.html">FAQ</a></li>
+			<li><a href="adminterms.html">Terms of Use</a></li>
+			<li><a href="adminprivacy.html">Privacy</a></li>
+			<li><a href="admincontact.html">Contact</a></li>
+		</ul>
+		<span class="copyright">
+			&copy; Copyright. All rights reserved. Design by Darker Waters LTD
+		</span>
+	</footer>
 </body>
 
 </html>

@@ -285,7 +285,9 @@ function resizeDocumentContent(source, idsToResize, targetSizeId, alternateButto
         // try to find the target under the common parent
         targetElement = commonParent.querySelector(targetSizeId);
         // keep looking up
-        commonParent = commonParent.parentElement;
+        if (!targetElement) {
+            commonParent = commonParent.parentElement;
+        }
     } while (!targetElement && commonParent);
 
     var alternateButton = commonParent.querySelector(alternateButtonId);
@@ -321,7 +323,9 @@ function resizeDocumentContentReset(source, idsToResize, targetSizeId, alternate
         // try to find the target under the common parent
         targetElement = commonParent.querySelector(targetSizeId);
         // keep looking up
-        commonParent = commonParent.parentElement;
+        if (!targetElement) {
+            commonParent = commonParent.parentElement;
+        }
     } while (!targetElement && commonParent);
 
     var alternateButton = commonParent.querySelector(alternateButtonId);
