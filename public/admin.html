@@ -90,7 +90,7 @@
 							<div class="row uniform">
 								<div class="6u 12u(3)">
 									<input type="number" name="priority" id="section_priority" value="" placeholder="0" />
-									<label for="number">Priority of the section (1..n - lower earlier and zero to hide)</label>
+									<label for="priority">Priority of the section (1..n - lower earlier and zero to hide)</label>
 								</div>
 							</div>
 							<div class="row uniform">
@@ -131,20 +131,21 @@
 							<label for="coaches">Coaches</label>
 						</div>
 					</div>
+					<div class="row uniform" id="lesson_plan_container">
+						<!-- this is where the lesson plan will be shown-->
+					</div>
+			
+					<header class="major">
+							<h2>Current Lessons in Collection</h2>
+					</header>
 					<div class="row uniform">
-						<!--
-						<div class="6u 12u(3)">
-							<input type="text" name="lesson_plan_entry_name" id="lesson_plan_entry_name" value="" placeholder="Lesson n" />
-						</div>
-						-->
-						<div class="6u 12u(3)">
+						<div class="3u 12u(3)">
 							<a id="add_lesson_button" class="lesson_selector button" onclick="addLessonToCollection()">Add lesson to collection</a>
 						</div>
+						<div class="3u 12u(3)">
+							<a id="create_lesson_plan_button" class="lesson_selector button" onclick="createLessonPlanFromOrder()">Overwrite the Lesson Plan with lesson priority</a>
+						</div>
 					</div>
-					
-					<header class="major">
-						<h2>Current Lessons in Collection</h2>
-					</header>
 
 					<div id="lessons">
 					</div>
@@ -156,8 +157,14 @@
 						</header>
 						<div class="row uniform">
 							<div class="6u 12u(3)">
+								<input type="number" name="priority" id="priority" value="" placeholder="0" />
+								<label for="priority">Priority of the lesson (1..n - lower earlier and zero to hide)</label>
+							</div>
+						</div>
+						<div class="row uniform">
+							<div class="6u 12u(3)">
 								<input type="text" name="name" id="name" value="" placeholder="Name" />
-								<label for="name">Title of the lesson (can be different that in the lesson plan)</label>
+								<label for="name">Title of the lesson (can be different to that in the lesson plan)</label>
 							</div>
 							<div class="6u 12u(3)">
 								<textarea name="subtitle" id="subtitle" placeholder="Subtitle" rows="2"></textarea>

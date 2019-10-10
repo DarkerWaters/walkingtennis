@@ -11,8 +11,7 @@ function displayCoachingData(user) {
     // populate this div with the lessons from firebase
     var db = firebase.firestore();
     // get the data for the user
-    const docRef = db.collection('lesson_plans').doc('coaching')
-    docRef.get().then(function(doc) {
+    db.collection('lesson_plans').doc('coaching').get().then(function(doc) {
         if (doc.exists) {
             // do stuff with the data
             displayLessonPlan(lessonsDiv, doc.data());   
@@ -204,8 +203,7 @@ function showLessonContent(lessonRef, userData) {
     // populate the div with the lesson content from firebase
     var db = firebase.firestore();
     // get the data for the user
-    const docRef = db.collection('coaching_lessons').doc(lessonRef)
-    docRef.get().then(function(doc) {
+    db.collection('coaching_lessons').doc(lessonRef).get().then(function(doc) {
         if (doc.exists) {
             // show this lesson content
             displayLessonContent(doc.data());

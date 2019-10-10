@@ -3,6 +3,8 @@ var currentLessonRef;
 var activeLessonCollection = 'lessons';
 var activeLessonPlan = 'everyone';
 
+var lessonPlanData = {};
+
 function setLessonPlan(lessonPlan, collectionName) {
     activeLessonPlan = lessonPlan;
     activeLessonCollection = collectionName;
@@ -77,6 +79,7 @@ function addLessonSection() {
     // add a new section to the current lesson
     firebase.firestore().collection(activeLessonCollection).doc(currentLessonRef).collection('contents').add({
         title: "New Section",
+        priority: 0,
         subtitle: "A newly added section just now",
         text: "add your text content here",
         image: "add a URL to an image here, have to have either this, a video, or both!",
@@ -98,16 +101,16 @@ function displayAdminData(user) {
                 
     // now get all the lessons and show them all here - just doing lessons ATM as don't know about coa
     var lessonsDiv = document.getElementById('lessons');
+    var lessonPlansDiv = document.getElementById('lesson_plan_container');
     // populate this div with the lessons from firebase
     var db = firebase.firestore();
 
-    /*
     // get the data for the user - get the lesson plan
     const docRef = db.collection('lesson_plans').doc(activeLessonPlan)
     docRef.get().then(function(doc) {
         if (doc.exists) {
             // do stuff with the data
-            displayLessonPlan(lessonsDiv, doc.data());
+            displayLessonPlan(lessonPlansDiv, doc.data());
         } else {
             // error
             lessonsDiv.innerHTML = 'failed to find the lesson plan, sorry...';
@@ -115,10 +118,10 @@ function displayAdminData(user) {
     }).catch(function(error) {
         console.log("Error getting document:", error);
     });
-    */
-   // get all the lessons in the collection
-   db.collection(activeLessonCollection).get().then(
-       function(querySnapshot) {
+    
+    // get all the lessons in the collection
+    db.collection(activeLessonCollection).orderBy("priority").get().then(
+        function(querySnapshot) {
             // clear all the current lessons
             var child = lessonsDiv.lastElementChild;  
             while (child) { 
@@ -132,6 +135,33 @@ function displayAdminData(user) {
             });
             // show the result
             lessonsDiv.style.display = null;
+        }
+    );
+}
+
+function createLessonPlanFromOrder() {
+    // this will overwrite the lesson plan with the collection of lessons, and their ordering
+    var db = firebase.firestore();
+    db.collection(activeLessonCollection).where("priority", ">", 0).orderBy("priority").get().then(
+        function(querySnapshot) {
+            // get each lesson in the snapshot, create the lesson plan from this (zero excluded otherwise in order)
+            var lessonsRefs = [];
+            var lessonsNames = [];
+            querySnapshot.forEach(function(doc) {
+                // doc.data() is never undefined for query doc snapshots, add the name and the ref to the arrays created
+                lessonsRefs.push(db.doc('/' + activeLessonCollection + '/' + doc.id));
+                lessonsNames.push(doc.data()['name']);
+            });
+            var lessonData = {};
+            lessonData['lessons'] = lessonsRefs;
+            lessonData['lessons_names'] = lessonsNames;
+            // send this to firestore to replace the plan
+            db.collection('lesson_plans').doc(activeLessonPlan).set(lessonData).then(function() {
+                console.log("Document successfully updated");
+                displayAdminData();
+            }).catch(function(error) {
+                console.error("Error removing document: ", error);
+            });
         }
     );
 }
@@ -175,11 +205,11 @@ function displayLessonPlan(lessonsDiv, data) {
         if (i < lessonNames.length) {
             lessonName = lessonNames[i];
         }
-        createLessonButton(lessonsDiv, lessonRef, lessonName);
+        createLessonPlanButton(lessonsDiv, lessonRef, lessonName);
     }
 }
 
-function createLessonButton(lessonsDiv, lessonRef, lessonName) {
+function createLessonPlanButton(lessonsDiv, lessonRef, lessonName) {
     // create the button container - all included
     var templateLessonContainer = document.getElementById('template-lesson-container');
     var lessonContainer = templateLessonContainer.cloneNode(true);
@@ -187,15 +217,23 @@ function createLessonButton(lessonsDiv, lessonRef, lessonName) {
     lessonContainer.id = lessonRef + 'container';
     // and put this container into the document and remember the one added
     lessonContainer = lessonsDiv.appendChild(lessonContainer);
-    
     // this container contains the button, find the button
     var lessonButton = lessonContainer.querySelector('#template-lesson-button');
     // and set the ID and the name properly
     lessonButton.id = lessonRef;
     lessonButton.innerHTML = lessonName;
-    lessonButton.setAttribute("onClick", "onClickLesson('" + lessonRef + "')");
-    // reveal the whole container
+    // reveal the button
     lessonContainer.style.display = null;
+    // and return the button
+    return lessonButton;
+}
+
+function createLessonButton(lessonsDiv, lessonRef, lessonName) {
+    // create the button container - re-use the lesson plan button
+    var lessonButton = createLessonPlanButton(lessonsDiv, lessonRef, lessonName);
+    // setup the click on this
+    lessonButton.id = 'lesson' + lessonRef;
+    lessonButton.setAttribute("onClick", "onClickLesson('" + lessonRef + "')");
 }
 
 function onClickLesson(lessonRef) {
@@ -210,7 +248,7 @@ function showLessonContent(lessonRef) {
     // remove the 'special' from any currently pressed buttons
     var buttons = document.getElementsByClassName("lesson_selector");
     for (var i = 0; i < buttons.length; i++) {
-        if (buttons[i].id === lessonRef) {
+        if (buttons[i].id === 'lesson' + lessonRef) {
             // this is the special one
             buttons[i].classList.add("special");
         }
@@ -224,8 +262,7 @@ function showLessonContent(lessonRef) {
     // populate the div with the lesson content from firebase
     var db = firebase.firestore();
     // get the data for the user
-    const docRef = db.collection(activeLessonCollection).doc(lessonRef)
-    docRef.get().then(function(doc) {
+    db.collection(activeLessonCollection).doc(lessonRef).get().then(function(doc) {
         if (doc.exists) {
             // show this lesson content
             displayLessonContent(doc.data());
@@ -246,7 +283,7 @@ function showLessonSections() {
 
     // now get them all
     // get all the sections in the lesson
-    firebase.firestore().collection('lessons/' + currentLessonRef + '/contents').get().then(
+    firebase.firestore().collection(activeLessonCollection + '/' + currentLessonRef + '/contents').orderBy("priority").get().then(
         function (querySnapshot) {
             // we have all the contents of the lesson now, put each content found back in
             var sectionContainer = document.getElementById('lesson_section_container');
@@ -262,12 +299,14 @@ function saveLessonToCollection() {
     // get all the data from the page
     var lessonData = {};
     
+    lessonData['priority'] = Number(document.getElementById('priority').value);
     lessonData['name'] = document.getElementById('name').value;
     lessonData['subtitle'] = document.getElementById('subtitle').value;
     lessonData['progress_options'] = document.getElementById('progress_options').value;
 
     firebase.firestore().collection(activeLessonCollection).doc(currentLessonRef).set(lessonData).then(function() {
         console.log("Document successfully updated");
+        displayAdminData();
     }).catch(function(error) {
         console.error("Error removing document: ", error);
     });
@@ -288,6 +327,7 @@ function displayLessonContent(lessonData) {
     var lessonContent = document.getElementById('lesson_content');
     document.getElementById('lesson_ref_title').innerHTML = 'Lesson ' + currentLessonRef + ' top-level data';
     
+    document.getElementById('priority').value = lessonData['priority'];
     document.getElementById('name').value = lessonData['name'];
     document.getElementById('subtitle').value = lessonData['subtitle'];
     
@@ -346,8 +386,8 @@ function createLessonContentsDiv(contentsContainer, contentsRef, contents) {
 function saveLessonSection(sectionRef, sectionContainer) {
     // get all the data from the page
     var sectionData = {};
-    // get the data from the controls into this object
-    sectionData['priority'] = sectionContainer.querySelector('#section_priority').value;
+    // get the data from the controls into this object = PRIORITY HAS TO BE A NUMBER TO WORK PROPERLY!!!!
+    sectionData['priority'] = Number(sectionContainer.querySelector('#section_priority').value);
     sectionData['title'] = sectionContainer.querySelector('#section_title').value;
     sectionData['subtitle'] = sectionContainer.querySelector('#section_subtitle').value;
     sectionData['video'] = sectionContainer.querySelector('#section_video').value;
