@@ -257,7 +257,7 @@ function displayLessonContent(lessonRef, lessonData) {
         // so we need to get all the contents under this lesson, and add a div of content for each of them
         var db = firebase.firestore();
         // get all the lessons in the collection
-        db.collection('lessons/' + lessonRef + '/contents').get().then(
+        db.collection('lessons/' + lessonRef + '/contents').where("priority", ">", 0).orderBy("priority").get().then(
             function (querySnapshot) {
                 // we have all the contents of the lessonref now, clear all the old contents children
                 var contentsContainer = lessonContent.querySelector('#lesson_contents_container');
@@ -377,6 +377,7 @@ function createLessonContentsDiv(contentsContainer, contentsRef, contents) {
         }
         else {
             //oops - need one or the other! show text only - will show the logo with the text
+            contentsDiv.querySelector('#lesson_content_image_two').style.display = null;
         }
     }
 
