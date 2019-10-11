@@ -95,14 +95,17 @@
 				</span>
 				<!-- this is the template for an item of lesson content-->
 				<div id="template-lesson-content" >
+					<hr/>
 					<header>
-						<h3 id="lesson_content_heading">title</h3>
+						<h2 id="lesson_content_heading">title</h3>
 						<p id="lesson_content_subtitle">subtitle</p>
 					</header>
 					<div id="lesson_content_three" style="display: none" class="row">
 						<div id="lesson_content_one_of_three" class="3u 12u(2)">
 							<span id="lesson_content_one_of_three_span" class="image fit" style="z-index: 100"> 
-								<iframe id="lesson_content_video_three" style="display: none" src="https://www.youtube.com/embed/tgbNymZ7vqY" frameborder="0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+								<div class="iframe-container" style="display: none">
+									<iframe id="lesson_content_video_three" src="https://www.youtube.com/embed/tgbNymZ7vqY" frameborder="0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+								</div>
 							</span>
 							<a id="lesson_content_grow_video_three" class="lesson_selector button" onclick="resizeDocumentContent(this, '#lesson_content_video_three', '#lesson_content_three', '#lesson_content_shrink_video_three')">Show Larger</a>
 							<a id="lesson_content_shrink_video_three" style="display: none" class="lesson_selector button" onclick="resizeDocumentContentReset(this, '#lesson_content_video_three', '#lesson_content_three', '#lesson_content_grow_video_three')">Show Smaller</a>
@@ -119,7 +122,9 @@
 					<div id="lesson_content_two" style="display: none" class="row">
 						<div id="lesson_content_one_of_two" class="3u 12u(2)">
 							<span class="image fit">
-								<iframe id="lesson_content_video_two" style="display: none" src="https://www.youtube.com/embed/tgbNymZ7vqY" frameborder="0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+								<div class="iframe-container" style="display: none">
+									<iframe id="lesson_content_video_two" src="https://www.youtube.com/embed/tgbNymZ7vqY" frameborder="0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+								</div>
 								<img id="lesson_content_image_two" style="display: none" src="images/branding/logos/full_logo_512.png" alt="walking tennis.org" />
 							</span>
 							<a id="lesson_content_grow_video_two" style="display: none" class="lesson_selector button" onclick="resizeDocumentContent(this, '#lesson_content_video_two,#lesson_content_image_two', '#lesson_content_two', '#lesson_content_shrink_video_two')">Show Larger</a>
@@ -135,6 +140,7 @@
 				
 			</div>
 			<div id="lesson_content" style="display: none">
+				<hr/>
 				<header class="major">
 					<h2 id='lesson_name'>Title</h2>
 					<p id='lesson_subtitle'>This is the lesson subtitle here.</p>

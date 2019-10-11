@@ -394,6 +394,7 @@ function createLessonContentsDiv(contentsContainer, contentsRef, contents) {
     if (video) {
         video.src = contents['video'];
         video.style.display = null;
+        video.parentElement.style.display = null;
     }
     if (image) {
         image.src = contents['image'];
