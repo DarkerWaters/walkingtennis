@@ -136,6 +136,10 @@
 								<div class="12u">
 									<textarea name="content" id="section_text" placeholder="The textual content of the lesson sections (can include HTML)" rows="6"></textarea>
 								</div>
+								<div class="12u" id="section_text_preview">
+									Hello there, this is a preview of what you are entering as text.
+								</div>
+								<label for="section_text_preview">Content Preview (HTML Permitted)</label>
 							</div>
 						</div>
 					</div>
@@ -156,17 +160,17 @@
 			
 					<hr/>
 					<header class="major">
-							<h2>Current Lessons in Collection</h2>
+							<h2>Lessons in Collection</h2>
 					</header>
 					<div class="row uniform">
-						<div class="3u 12u(3)">
+						<div class="6u 12u(3)">
 							<a id="add_lesson_button" class="lesson_selector button" onclick="addLessonToCollection()">Add lesson to collection</a>
 						</div>
-						<div class="3u 12u(3)">
+						<div class="6u 12u(3)">
 							<a id="create_lesson_plan_button" class="lesson_selector button" onclick="createLessonPlanFromOrder()">Overwrite the Lesson Plan with lesson priority</a>
 						</div>
 					</div>
-
+					<hr/>
 					<div id="lessons">
 					</div>
 					<div id="lesson_content" style="display: none">

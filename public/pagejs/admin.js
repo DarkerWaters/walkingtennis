@@ -371,6 +371,7 @@ function createLessonContentsDiv(contentsContainer, contentsRef, contents) {
     var image = contentsDiv.querySelector('#section_image');
     var video = contentsDiv.querySelector('#section_video');
     var text = contentsDiv.querySelector('#section_text');
+    var textPreview = contentsDiv.querySelector('#section_text_preview');
     
     priority.value = contents['priority'];
     heading.value = contents['title'];
@@ -378,6 +379,19 @@ function createLessonContentsDiv(contentsContainer, contentsRef, contents) {
     video.value = contents['video'];
     image.value = contents['image'];
     text.value = contents['text'];
+    textPreview.innerHTML = contents['text'];
+
+    if (text.addEventListener) {
+        text.addEventListener('input', function() {
+            // event handling code for sane browsers, listen to the text area and show a preview
+            textPreview.innerHTML = text.value;
+        }, false);
+    } else if (text.attachEvent) {
+        text.attachEvent('onpropertychange', function() {
+            // IE-specific event handling code
+            textPreview.innerHTML = text.value;
+        });
+    }
 
     // and append this div to the content
     contentsContainer.appendChild(contentsDiv);
@@ -443,5 +457,5 @@ function populateUserData() {
 
 document.addEventListener('firebaseuserchange', function() {
     console.log('login changed so ready for input');
-    populateUserData();			
+    populateUserData();	
 });
