@@ -306,10 +306,24 @@ function resizeDocumentContent(source, idsToResize, targetSizeId, alternateButto
                 // no alternative button and the element is already big, shrink it back
                 elementToResize.removeAttribute('width');
                 elementToResize.removeAttribute('height');
+                // was it a fill container and wants to be again?
+                if (elementToResize.classList.contains('iframe-fillContainer-removed')) {
+                    // remove it
+                    elementToResize.classList.remove('iframe-fillContainer-removed');
+                    // and add the real one back in
+                    elementToResize.classList.add('iframe-fillContainer');
+                }
             }
             else {
                 elementToResize.width = width;
                 elementToResize.height = heightFactor * width;
+                // but if it is an 'iframe-fillContainer' - the style of this will make it 100% all the time, remove this then!
+                if (elementToResize.classList.contains('iframe-fillContainer')) {
+                    // remove it
+                    elementToResize.classList.remove('iframe-fillContainer');
+                    // but add a dummy so reset knows to put it back in
+                    elementToResize.classList.add('iframe-fillContainer-removed');
+                }
             }
         }
     }
@@ -341,6 +355,13 @@ function resizeDocumentContentReset(source, idsToResize, targetSizeId, alternate
             // reset the size
             elementToResize.removeAttribute('width');
             elementToResize.removeAttribute('height');
+            // was it a fill container and wants to be again?
+            if (elementToResize.classList.contains('iframe-fillContainer-removed')) {
+                // remove it
+                elementToResize.classList.remove('iframe-fillContainer-removed');
+                // and add the real one back in
+                elementToResize.classList.add('iframe-fillContainer');
+            }
         }
     }
 }

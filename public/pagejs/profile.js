@@ -24,7 +24,7 @@ function logout() {
         // An error happened.
         console.log(error);
     });
-    populateUserData();
+    window.location = 'index.html';
 }
 function populateUserData() {
     var user = getFirebaseUser();
@@ -91,6 +91,35 @@ function populateUserData() {
         document.getElementById('profile_data').style.display = 'none';
     }
 };
+
+function deleteMembershipCountdown() {
+    var countdownDiv = document.getElementById('delete_button_countdown');
+    var deleteButton = document.getElementById('delete_membership_button');
+    var seconds = 4;
+    countdownDiv.innerHTML = 'Pausing just a little for you to reconsider...'
+    // Count down from 5 to show the button
+    let timerId = setInterval(() => countdownDiv.innerHTML = seconds--, 1000);
+
+    // after 5 seconds stop
+    setTimeout(() => { clearInterval(timerId); countdownDiv.style.display = 'none'; deleteButton.style.display = null; }, 5000);
+}
+
+function deleteMembership() {
+    // okay, let's delete the membership data here
+    var user = getFirebaseUser();
+    if (!user) {
+        // they don't seem to be logged in
+        alert("Sorry about this, but you don't seem to be logged in properly, try refreshing the page and starting again." );
+    }
+    else if (confirm("Last chance, are you sure you want to delete everything?")) {
+        firebase.firestore().collection("users").doc(user.uid).delete().then(function() {
+            logout();
+        }).catch(function(error) {
+            alert("Sorry about this, but there was some error in removing all your data, please contact us to confirm all you data was in-fact removed. Please reference this weird set of letters to help us find it: '" + user.uid + "'." );
+            console.error("Error removing document: ", error);
+        });
+    }
+}
 
 document.addEventListener('firebaseuserchange', function() {
     console.log('login changed so ready for input');
