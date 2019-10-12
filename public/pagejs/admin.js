@@ -54,7 +54,9 @@ function addLessonToCollection() {
     // add a new lesson to the current plan
     firebase.firestore().collection(activeLessonCollection).add({
         name: "New Lesson",
-        subtitle: "A newly added lesson just now"
+        subtitle: "A newly added lesson just now",
+        priority: 0,
+        progress_options: ""
     })
     .then(function(newDocRef) {
         // refresh the page
