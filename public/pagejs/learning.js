@@ -119,8 +119,11 @@ function setLessonProgress(progress) {
 function showLessonProgress(progress) {
     var user = getFirebaseUser();
     if (!user) {
+        // show that the user has to log in
         document.getElementById('not_logged_in').style.display = null;
         document.getElementById('not_a_member').style.display = 'none';
+        // hide the progress buttons
+        document.getElementById('lesson_progress_container').style.display = 'none';
     }
     else {
         // get the user data from firebase here
@@ -130,6 +133,8 @@ function showLessonProgress(progress) {
                 // we are a member, show the progress for this user then
                 document.getElementById('not_logged_in').style.display = 'none';
                 document.getElementById('not_a_member').style.display = 'none';
+                // show the progress buttons
+                document.getElementById('lesson_progress_container').style.display = null;
                 // remove the 'special' from any currently pressed buttons
                 var buttons = document.getElementsByClassName("lesson_progress_selector");
                 for (var i = 0; i < buttons.length; i++) {
@@ -143,24 +148,23 @@ function showLessonProgress(progress) {
                     }
                 }
                 var progressControl = document.getElementById('progress_display');
-                if (progress) {
-                    progressControl.value = progress;
-                    progressControl.style.display = null;
-                }
-                else {
-                    progressControl.style.display = 'none';
-                }
+                progressControl.value = !progress ? 0 : progress;
+                progressControl.style.display = null;
             }
             else {
                 // we are not a member
                 document.getElementById('not_logged_in').style.display = 'none';
                 document.getElementById('not_a_member').style.display = null;
+                // hide the progress buttons
+                document.getElementById('lesson_progress_container').style.display = 'none';
             }
         }, function() {
             // this is the failure to get the data, do our best I suppose
             console.log("Failed to get the firestore user data for " + user);
             document.getElementById('not_logged_in').style.display = null;
             document.getElementById('not_a_member').style.display = 'none';
+            // hide the progress buttons
+            document.getElementById('lesson_progress_container').style.display = 'none';
         });
     }
     // find the button that represents this progress level and select it
@@ -249,24 +253,22 @@ function displayLessonContent(lessonRef, lessonData) {
 
     var progressOptions = lessonData['progress_options'];
     if (progressOptions) {
-        if (currentLessonProgress) {
-            // get the template progress button
-            var progressButtonTemplate = document.getElementById('template-lesson-progress');
-            // there are options for progress to be recorded, get the options and create the buttons for them here
-            var optionsArray = progressOptions.split(',');
-            for (var i = 0; i < optionsArray.length; ++i) {
-                // for each option, create the progress button
-                var progressButtonParent = progressButtonTemplate.cloneNode(true);
-                // get rid of the non-unique id
-                progressButtonParent.id = null;
-                var progressButton = progressButtonParent.querySelector('#lesson-progress-button');
-                var settingsArray = optionsArray[i].split(':');
-                progressButton.innerHTML = settingsArray[0];
-                progressButton.id = 'lesson_progress_' + settingsArray[1];
-                progressButton.setAttribute("onClick", "setLessonProgress('" + settingsArray[1] + "')");
-                // add to the container
-                progressContainer.appendChild(progressButtonParent);
-            }
+        // get the template progress button
+        var progressButtonTemplate = document.getElementById('template-lesson-progress');
+        // there are options for progress to be recorded, get the options and create the buttons for them here
+        var optionsArray = progressOptions.split(',');
+        for (var i = 0; i < optionsArray.length; ++i) {
+            // for each option, create the progress button
+            var progressButtonParent = progressButtonTemplate.cloneNode(true);
+            // get rid of the non-unique id
+            progressButtonParent.id = null;
+            var progressButton = progressButtonParent.querySelector('#lesson-progress-button');
+            var settingsArray = optionsArray[i].split(':');
+            progressButton.innerHTML = settingsArray[0];
+            progressButton.id = 'lesson_progress_' + settingsArray[1];
+            progressButton.setAttribute("onClick", "setLessonProgress('" + settingsArray[1] + "')");
+            // add to the container
+            progressContainer.appendChild(progressButtonParent);
         }
 
         // so we need to get all the contents under this lesson, and add a div of content for each of them
