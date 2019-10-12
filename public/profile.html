@@ -49,7 +49,7 @@
 <body class="landing">
 	<!-- Header -->
 	<header id="header" class="skel-layers-fixed">
-		<h1><a href="index.html">Walking Tennis</a></h1>
+		<h1><a href="index.html">Walking Tennis Association</a></h1>
 		<nav id="nav">
 			<ul>
 				<li>
@@ -81,16 +81,35 @@
 				<span class="image left">
 					<img id='user_image' src="images/generic/pic07.jpg" alt="users image" />
 					<a class="button special" id='log_out' onclick="logout();">Log out...</a>
+					<a class="button" id='edit_profile_button' onclick="enableEdit();">Change Details</a>
+					<a class="button" id='edit_profile_commit_button' onclick="saveEdits();" style="display: none;">Save Changes</a>
+					<a class="button" id='edit_profile_discard_button' onclick="discardEdits();" style="display: none;">Discard Changes</a>
 				</span>
 				<div class="row uniform">
 					<div class="6u 12u(3)">
 						<input type="text" name="name" id="name" value="" placeholder="Name" readonly />
+						<label for="name">Name</label>
 					</div>
 					<div class="6u 12u(3)">
 						<input type="email" name="email" id="email" value="" placeholder="Email" readonly />
 						<input type="checkbox" id="email-verified" name="email-verified" onclick="return false;">
 						<label for="email-verified">Email Verified</label>
 						<a class="button special" id='send_verification' onclick="sendEmailVerfication();">Send verification email...</a>
+					</div>
+				</div>
+				<div class="row uniform">
+					<div class="3u 12u(3)">
+						<a class="button" id='change_password_button' onclick="enablePasswordChange();">Change Password</a>
+					</div>
+					<div id="change_password_container" class="3u 12u(3)" style="display: none;">
+						<p>
+							<input type="password" name="password_one" id="password_one" value="" />
+						</p>
+						<p>
+							<input type="password" name="password_two" id="password_two" value="" />
+						</p>
+						<label for="password_two">Enter a new password (twice)</label>
+						<a class="button" id='reset_password' onclick="resetPassword();">Save</a>
 					</div>
 				</div>
 				<div class="row uniform">

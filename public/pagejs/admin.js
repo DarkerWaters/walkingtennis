@@ -434,7 +434,7 @@ function populateUserData() {
         displayAdminData(user);
         // get the user data from firebase here
         getFirebaseUserData(user, function(data) {
-            // we have the user data here, set the data correcly
+            // we have the user data here, set the data correctly
             if (isFirebaseUserAdmin(data)) {
                 // we are a coach
                 displayAdminData(user);

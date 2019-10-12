@@ -29,17 +29,16 @@ exports.createUserData = functions.auth.user().onCreate((user) => {
         joined_date: fieldValue.serverTimestamp(),
         expiry_coach: fieldValue.serverTimestamp(),
         expiry_member: null
-
     });
-
 });
 
 // when a user is deleted, they are leaving, then we want to say goodbye and also to delete all their stored user data
 exports.deleteUserData = functions.auth.user().onDelete((user) => {
     // delete all their data, to comply with GDPR
-    //TODO delete all User data associated with the user UID
-    const userUid = user.uid;
-
+    const docRef = db.collection('users').doc(user.uid);
+    if (docRef) {
+        docRef.delete();
+    }
     //TODO also maybe send an email
 
     //TODO also maybe track that they left, if they were barred - remember this?

@@ -1338,10 +1338,10 @@ body.landing #skel-layers-wrapper {
 #banner {
 	background-attachment: scroll, fixed;
 	background-color: #494d53;
-	background-image: url("images/overlay.png"), url("../images/banner.jpg");
+	background-image: url("/images/backgrounds/1024/wet_court_net.jpg"), url("../images/banner.jpg");
 	background-position: top left, center center;
 	background-repeat: repeat, no-repeat;
-	background-size: auto, cover;
+	background-size: cover;
 	color: #d1d2d4;
 	padding: 16em 0;
 	position: relative;
