@@ -1,11 +1,14 @@
 var currentLessonRef;
 var currentLessonProgress;
 
-function displayMembersData(user) {
-    // show all the Members data now, first hide the warning that you are not a coach
-    document.getElementById('not_logged_in').style.display = 'none';
-    document.getElementById('not_a_member').style.display = 'none';
-                
+function displayLessonData() {
+    // remove everything from the lesson plan div
+    var lessonsDiv = document.getElementById('lessons');
+    var child = lessonsDiv.lastElementChild;  
+    while (child) { 
+        lessonsDiv.removeChild(child); 
+        child = lessonsDiv.lastElementChild; 
+    }
     // now get all the lessons and show them all here
     var lessonsDiv = document.getElementById('lessons');
     // populate this div with the lessons from firebase
@@ -25,28 +28,6 @@ function displayMembersData(user) {
     }).catch(function(error) {
         console.log("Error getting document:", error);
     });
-}
-
-function hideMembersData(user) {
-    // hide all the Members data
-    document.getElementById('lessons').style.display = 'none';
-    if (user) {
-        // have a user, but not a member, tell them to upgrade
-        document.getElementById('not_logged_in').style.display = 'none';
-        document.getElementById('not_a_member').style.display = null;
-    }
-    else {
-        // we are not logged in, ask the user to log in
-        document.getElementById('not_logged_in').style.display = null;
-        document.getElementById('not_a_member').style.display = 'none';
-    }
-    // remove everything from the lesson plan div
-    var lessonsDiv = document.getElementById('lessons');
-    var child = lessonsDiv.lastElementChild;  
-    while (child) { 
-        lessonsDiv.removeChild(child); 
-        child = lessonsDiv.lastElementChild; 
-    }
 }
 
 function displayLessonPlan(lessonsDiv, data) {
@@ -136,28 +117,55 @@ function setLessonProgress(progress) {
 }
 
 function showLessonProgress(progress) {
-    // find the button that represents this progress level and select it
-    
-    // remove the 'special' from any currently pressed buttons
-    var buttons = document.getElementsByClassName("lesson_progress_selector");
-    for (var i = 0; i < buttons.length; i++) {
-        if (buttons[i].id === 'lesson_progress_' + progress) {
-            // this is the special one (it's id is the lesson_progress_1 or whatever the progress currently is)
-            buttons[i].classList.add("special");
-        }
-        else {
-            // this is not the clicked on
-            buttons[i].classList.remove("special");
-        }
-    }
-    var progressControl = document.getElementById('progress_display');
-    if (progress) {
-        progressControl.value = progress;
-        progressControl.style.display = null;
+    var user = getFirebaseUser();
+    if (!user) {
+        document.getElementById('not_logged_in').style.display = null;
+        document.getElementById('not_a_member').style.display = 'none';
     }
     else {
-        progressControl.style.display = 'none';
+        // get the user data from firebase here
+        getFirebaseUserData(user, function(data) {
+            // we have the user data here, set the data correctly
+            if (isFirebaseUserMember(data)) {
+                // we are a member, show the progress for this user then
+                document.getElementById('not_logged_in').style.display = 'none';
+                document.getElementById('not_a_member').style.display = 'none';
+                // remove the 'special' from any currently pressed buttons
+                var buttons = document.getElementsByClassName("lesson_progress_selector");
+                for (var i = 0; i < buttons.length; i++) {
+                    if (buttons[i].id === 'lesson_progress_' + progress) {
+                        // this is the special one (it's id is the lesson_progress_1 or whatever the progress currently is)
+                        buttons[i].classList.add("special");
+                    }
+                    else {
+                        // this is not the clicked on
+                        buttons[i].classList.remove("special");
+                    }
+                }
+                var progressControl = document.getElementById('progress_display');
+                if (progress) {
+                    progressControl.value = progress;
+                    progressControl.style.display = null;
+                }
+                else {
+                    progressControl.style.display = 'none';
+                }
+            }
+            else {
+                // we are not a member
+                document.getElementById('not_logged_in').style.display = 'none';
+                document.getElementById('not_a_member').style.display = null;
+            }
+        }, function() {
+            // this is the failure to get the data, do our best I suppose
+            console.log("Failed to get the firestore user data for " + user);
+            document.getElementById('not_logged_in').style.display = null;
+            document.getElementById('not_a_member').style.display = 'none';
+        });
     }
+    // find the button that represents this progress level and select it
+    
+    
 }
 
 function onClickLesson(lessonRef) {
@@ -184,7 +192,12 @@ function onClickLesson(lessonRef) {
 function showLessonContent(lessonRef, userData) {
     // remember this reference to the currently selected lesson
     currentLessonRef = lessonRef;
-    currentLessonProgress = userData['progress_' + lessonRef];
+    if (userData) {
+        currentLessonProgress = userData['progress_' + lessonRef];
+    }
+    else {
+        currentLessonProgress = null;
+    }
 
     // remove the 'special' from any currently pressed buttons
     var buttons = document.getElementsByClassName("lesson_selector");
@@ -225,32 +238,35 @@ function displayLessonContent(lessonRef, lessonData) {
     document.getElementById('lesson_name').innerHTML = lessonData['name'];
     document.getElementById('lesson_subtitle').innerHTML = lessonData['subtitle'];
     document.getElementById('lesson_content').style.display = null;
+    
+    var progressContainer = lessonContent.querySelector('#lesson_progress_container');
+    // remove all the progress buttons from the container to start clean
+    var child = progressContainer.lastElementChild;  
+    while (child) { 
+        progressContainer.removeChild(child); 
+        child = progressContainer.lastElementChild; 
+    } 
 
     var progressOptions = lessonData['progress_options'];
     if (progressOptions) {
-        // get the template progress button
-        var progressButtonTemplate = document.getElementById('template-lesson-progress');
-        var progressContainer = lessonContent.querySelector('#lesson_progress_container');
-        // remove all the progress buttons from the container to start clean
-        var child = progressContainer.lastElementChild;  
-        while (child) { 
-            progressContainer.removeChild(child); 
-            child = progressContainer.lastElementChild; 
-        } 
-        // there are options for progress to be recorded, get the options and create the buttons for them here
-        var optionsArray = progressOptions.split(',');
-        for (var i = 0; i < optionsArray.length; ++i) {
-            // for each option, create the progress button
-            var progressButtonParent = progressButtonTemplate.cloneNode(true);
-            // get rid of the non-unique id
-            progressButtonParent.id = null;
-            var progressButton = progressButtonParent.querySelector('#lesson-progress-button');
-            var settingsArray = optionsArray[i].split(':');
-            progressButton.innerHTML = settingsArray[0];
-            progressButton.id = 'lesson_progress_' + settingsArray[1];
-            progressButton.setAttribute("onClick", "setLessonProgress('" + settingsArray[1] + "')");
-            // add to the container
-            progressContainer.appendChild(progressButtonParent);
+        if (currentLessonProgress) {
+            // get the template progress button
+            var progressButtonTemplate = document.getElementById('template-lesson-progress');
+            // there are options for progress to be recorded, get the options and create the buttons for them here
+            var optionsArray = progressOptions.split(',');
+            for (var i = 0; i < optionsArray.length; ++i) {
+                // for each option, create the progress button
+                var progressButtonParent = progressButtonTemplate.cloneNode(true);
+                // get rid of the non-unique id
+                progressButtonParent.id = null;
+                var progressButton = progressButtonParent.querySelector('#lesson-progress-button');
+                var settingsArray = optionsArray[i].split(':');
+                progressButton.innerHTML = settingsArray[0];
+                progressButton.id = 'lesson_progress_' + settingsArray[1];
+                progressButton.setAttribute("onClick", "setLessonProgress('" + settingsArray[1] + "')");
+                // add to the container
+                progressContainer.appendChild(progressButtonParent);
+            }
         }
 
         // so we need to get all the contents under this lesson, and add a div of content for each of them
@@ -436,31 +452,7 @@ function removeLessonContent() {
 
 // need to manage the data in this page
 function populateUserData() {
-    var user = getFirebaseUser();
-    if (user) {
-        // we are logged in
-        displayMembersData(user);
-        // get the user data from firebase here
-        getFirebaseUserData(user, function(data) {
-            // we have the user data here, set the data correctly
-            if (isFirebaseUserCoach(data)) {
-                // we are a coach
-                displayMembersData(user);
-            }
-            else {
-                // we are not a coach
-                hideMembersData(user);
-            }
-        }, function() {
-            // this is the failure to get the data, do our best I suppose
-            hideMembersData(user);
-            console.log("Failed to get the firestore user data for " + user);
-        });
-    }
-    else {
-        // we are not logged in, ask the user to log in
-        hideMembersData(user);
-    }
+    displayLessonData();
 };
 
 document.addEventListener('firebaseuserchange', function() {

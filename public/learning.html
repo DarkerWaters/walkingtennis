@@ -77,14 +77,6 @@
 				<h2>Learning to play Walking Tennis</h2>
 				<p>This is a great starting point for both walking and regular tennis.</p>
 			</header>
-			<div id="not_logged_in" style="display: none">
-				<h2>Sorry but access to this portion of the site is restricted to members only.</h2>
-				<p>Please log-in or create an account to access our lessons and much more, it's totally free!</p>
-			</div>
-			<div id="not_a_member" style="display: none">
-				<h2>Sorry but your membership does not include lessons</h2>
-				<p>Please go to your <a href="profile.html">profile</a> to update your subscription</p>
-			</div>
 			<div style="display: none">
 				<!-- a hidden div to place the templates to use to create the lesson plan-->
 				<!-- this is the template for a button to select the lesson-->
@@ -143,6 +135,9 @@
 					</div>
 				</div>
 			</div>
+			<div class="progress_container" >
+				Select a lesson to view its content...
+			</div>
 			<div id="lessons">
 				
 			</div>
@@ -151,6 +146,13 @@
 				<header class="major">
 					<h2 id='lesson_name'>Title</h2>
 					<p id='lesson_subtitle'>This is the lesson subtitle here.</p>
+					<div id="not_logged_in" style="display: none">
+						Why not sign-up and log-in. Then you can record your progress against these lessons as you learn?...
+					</div>
+					<div id="not_a_member" style="display: none">
+						<h2>Sorry but your membership does not include lessons</h2>
+						<p>Please go to your <a href="profile.html">profile</a> to update your subscription</p>
+					</div>
 					<progress id="progress_display" max="1" value="0.85"></progress>
 				</header>
 				<div id="lesson_progress_container" class="progress_container" >
