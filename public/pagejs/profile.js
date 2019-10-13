@@ -1,5 +1,8 @@
 // https://firebase.google.com/docs/auth/web/manage-users#get_the_currently_signed-in_user
 // need to manage the user data in this page
+
+var isChangedLocation = false;
+
 function showMembershipChange() {
     document.getElementById('change_membership').style.display = null;
     document.getElementById('membership_button').style.display = 'none';
@@ -27,6 +30,48 @@ function logout() {
         console.log(error);
     });
     window.location = 'index.html';
+}
+
+function setFirebaseUserLocation(user, latitude, longitude, onSuccess, onFailure) {
+    // clear the contents of the map
+    var locationsRef = firebase.firestore().collection("locations");
+    var usersUpdate = {};
+    usersUpdate['user_uid'] = user.uid;
+    usersUpdate['user_name'] = user.displayName;
+    usersUpdate['home_location'] = new firebase.firestore.GeoPoint(latitude, longitude);
+    usersUpdate['geohash'] = encodeGeohash([latitude, longitude]);
+
+    locationsRef.where("user_uid", "==", user.uid)
+    .get()
+    .then(function(querySnapshot) {
+        if (querySnapshot.empty) {
+            // this user has not yet published their location - publish now
+            locationsRef.add(usersUpdate)
+            .then(function(docRef) {
+                console.log("Document written with ID: ", docRef.id);
+            })
+            .catch(function(error) {
+                console.error("Error adding document: ", error);
+            });
+        }
+        else {
+            querySnapshot.forEach(function(doc) {
+                console.log(doc.id, " => ", doc.data());
+                doc.ref.update(usersUpdate).then(function() {
+                    console.log("Successfully updated the user's published location")
+                    onSuccess();
+                })
+                .catch(function(error) {
+                    console.log("Error updating document: ", error);
+                    onFailure();
+                });
+            });
+        }
+    })
+    .catch(function(error) {
+        console.log("Error getting documents: ", error);
+        
+    });
 }
 
 function populateUserData() {
@@ -217,6 +262,17 @@ function saveEdits() {
                 // An error happened.
                 console.log('failed to change the email for some reason', error);
                 alert(error);
+                populateUserData();
+            });
+        }
+        // if they changed the location, update the location to what they set
+        if (isChangedLocation) {
+            setFirebaseUserLocation(user, 51.4545, -2.5879, function() {
+                // this change was successful
+                populateUserData();
+                location.reload();
+            }, function() {
+                // this change was not successful
                 populateUserData();
             });
         }

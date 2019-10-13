@@ -57,5 +57,11 @@ service cloud.firestore {
       // allow anyone to read lessons
       allow read: if true;
     }
+    match /locations/{documents=**} {
+      // allow members to read this published information
+    	allow read: if isMember();
+      // allow the users to create, update and write their own data
+      allow write, create, update, delete: if request.auth.uid == request.resource.data['user_uid'] || isAdmin();
+    }
   }
 }
