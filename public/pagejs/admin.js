@@ -300,7 +300,7 @@ function showLessonSections() {
 function saveLessonToCollection() {
     // get all the data from the page
     var lessonData = {};
-    
+    // create the object of data to send
     lessonData['priority'] = Number(document.getElementById('priority').value);
     lessonData['name'] = document.getElementById('name').value;
     lessonData['subtitle'] = document.getElementById('subtitle').value;
@@ -308,6 +308,9 @@ function saveLessonToCollection() {
 
     firebase.firestore().collection(activeLessonCollection).doc(currentLessonRef).set(lessonData).then(function() {
         console.log("Document successfully updated");
+        // remove the red (saved now)
+        document.getElementById('save_lesson_button').classList.remove('special');
+        // and show the new order if it changed
         displayAdminData();
     }).catch(function(error) {
         console.error("Error removing document: ", error);
@@ -327,24 +330,27 @@ function removeLessonSections() {
 function displayLessonContent(lessonData) {
     removeLessonContent()
     var lessonContent = document.getElementById('lesson_content');
-    document.getElementById('lesson_ref_title').innerHTML = 'Lesson ' + currentLessonRef + ' top-level data';
-    
-    document.getElementById('priority').value = lessonData['priority'];
-    document.getElementById('name').value = lessonData['name'];
-    document.getElementById('subtitle').value = lessonData['subtitle'];
-    
+    document.getElementById('lesson_ref_title').innerHTML = 'Lesson: ' + currentLessonRef;
 
-    var progressOptions = lessonData['progress_options'];
-    document.getElementById('progress_options').value = progressOptions;
-    /*if (progressOptions) {
-        // show the progress options individually
-        var optionsArray = progressOptions.split(',');
-        for (var i = 0; i < optionsArray.length; ++i) {
-            // for each option, create the fields to edit the option
-            var settingsArray = optionsArray[i].split(':');
-        }
-    }*/
+    var saveButton = document.getElementById('save_lesson_button');
 
+    var priority = document.getElementById('priority');
+    var name = document.getElementById('name');
+    var subtitle = document.getElementById('subtitle');
+    var progressOptions = document.getElementById('progress_options');
+    
+    // set all the data for the lesson
+    priority.value = lessonData['priority'];
+    name.value = lessonData['name'];
+    subtitle.value = lessonData['subtitle'];
+    progressOptions.value = lessonData['progress_options'];
+    
+    // listen to changes on all of these
+    listenForChange(priority, function() {onContentsChanged(saveButton)});
+    listenForChange(name, function() {onContentsChanged(saveButton)});
+    listenForChange(subtitle, function() {onContentsChanged(saveButton)});
+    listenForChange(progressOptions, function() {onContentsChanged(saveButton)});
+    
     // show the sections that are available under this lesson
     showLessonSections();
 
@@ -364,7 +370,9 @@ function createLessonContentsDiv(contentsContainer, contentsRef, contents) {
     // set the title to be useful
     contentsDiv.querySelector('#lesson_section_ref_title').innerHTML = 'Section ' + contentsRef;
     contentsDiv.querySelector('#delete_lesson_section_button').onclick = function() {deleteLessonSection(contentsRef);};
-    contentsDiv.querySelector('#save_lesson_section_button').onclick = function() {saveLessonSection(contentsRef, contentsDiv);};
+    // setup the save button to be clear (no changes yet)
+    var saveButton = contentsDiv.querySelector('#save_lesson_section_button');
+    saveButton.onclick = function() {saveLessonSection(contentsRef, contentsDiv);};
 
     // set all the dta on this cloned node
     var priority = contentsDiv.querySelector('#section_priority');
@@ -375,6 +383,7 @@ function createLessonContentsDiv(contentsContainer, contentsRef, contents) {
     var text = contentsDiv.querySelector('#section_text');
     var textPreview = contentsDiv.querySelector('#section_text_preview');
     
+    // set all the data
     priority.value = contents['priority'];
     heading.value = contents['title'];
     subtitle.value = contents['subtitle'];
@@ -383,20 +392,79 @@ function createLessonContentsDiv(contentsContainer, contentsRef, contents) {
     text.value = contents['text'];
     textPreview.innerHTML = contents['text'];
 
-    if (text.addEventListener) {
-        text.addEventListener('input', function() {
-            // event handling code for sane browsers, listen to the text area and show a preview
-            textPreview.innerHTML = text.value;
-        }, false);
-    } else if (text.attachEvent) {
-        text.attachEvent('onpropertychange', function() {
-            // IE-specific event handling code
-            textPreview.innerHTML = text.value;
-        });
-    }
+    // listen to changes on all of these
+    listenForChange(priority, function() {onContentsChanged(saveButton)});
+    listenForChange(heading, function() {onContentsChanged(saveButton)});
+    listenForChange(subtitle, function() {onContentsChanged(saveButton)});
+    listenForChange(image, function() {onContentsChanged(saveButton)});
+    listenForChange(video, function() {onContentsChanged(saveButton)});
+    // text is more involved
+    listenForChange(text, function() {
+        // show the preview
+        textPreview.innerHTML = text.value;
+        // change the save button to be red (has changed something)
+        onContentsChanged(saveButton);
+    });
 
     // and append this div to the content
     contentsContainer.appendChild(contentsDiv);
+    // just set all the data, save should not be red
+    saveButton.classList.remove('special');
+}
+
+function listenForChange(elementToListen, functionToCall) {
+    if (elementToListen.addEventListener) {
+        elementToListen.addEventListener('input', function() {
+            // event handling code for sane browsers
+            functionToCall();
+        }, false);
+    } else if (elementToListen.attachEvent) {
+        elementToListen.attachEvent('onpropertychange', function() {
+            // IE-specific event handling code
+            functionToCall();
+        });
+    }
+}
+
+function onContentsChanged(saveButton) {
+    // show the contents have changed
+    saveButton.classList.add('special');
+}
+
+function addTagsToSibling(source, siblingId, tags) {
+    var textArea = source.parentElement.querySelector(siblingId);
+    insertAtCursor(textArea, tags);
+}
+
+function insertAtCursor(myField, myValue) {
+    //IE support
+    if (document.selection) {
+        myField.focus();
+        sel = document.selection.createRange();
+        sel.text = myValue;
+    }
+    // Microsoft Edge
+    else if(window.navigator.userAgent.indexOf("Edge") > -1) {
+      var startPos = myField.selectionStart; 
+      var endPos = myField.selectionEnd; 
+
+      myField.value = myField.value.substring(0, startPos)+ myValue 
+             + myField.value.substring(endPos, myField.value.length); 
+
+      var pos = startPos + myValue.length;
+      myField.focus();
+      myField.setSelectionRange(pos, pos);
+    }
+    //MOZILLA and others
+    else if (myField.selectionStart || myField.selectionStart == '0') {
+        var startPos = myField.selectionStart;
+        var endPos = myField.selectionEnd;
+        myField.value = myField.value.substring(0, startPos)
+            + myValue
+            + myField.value.substring(endPos, myField.value.length);
+    } else {
+        myField.value += myValue;
+    }
 }
 
 function saveLessonSection(sectionRef, sectionContainer) {
@@ -409,6 +477,8 @@ function saveLessonSection(sectionRef, sectionContainer) {
     sectionData['video'] = sectionContainer.querySelector('#section_video').value;
     sectionData['image'] = sectionContainer.querySelector('#section_image').value;
     sectionData['text'] = sectionContainer.querySelector('#section_text').value;
+
+    sectionContainer.querySelector('#save_lesson_section_button').classList.remove('special');
     
     // and send to firestore
     firebase.firestore().collection(activeLessonCollection + '/' + currentLessonRef + '/contents').doc(sectionRef).set(sectionData).then(function() {

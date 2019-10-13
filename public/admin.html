@@ -129,17 +129,21 @@
 								</div>
 								<div class="6u 12u(3)">
 									<input type="text" name="image" id="section_image" value="" />
-									<label for="video">URL to the Image</label>
+									<label for="video">URL to the Image eg: /images/backgrounds/512/wet_court.JPG</label>
 								</div>
 							</div>
 							<div class="row uniform">
 								<div class="12u">
+									<a class="button" onclick="addTagsToSibling(this, '#section_text', '&lt;b&gt;&lt;/b&gt;')">Bold</a>
+									<a class="button" onclick="addTagsToSibling(this, '#section_text', '&lt;i&gt;&lt;/i&gt;')">Italic</a>
+									<a class="button" onclick="addTagsToSibling(this, '#section_text', '&lt;p&gt;&lt;/p&gt;')">Para</a>
+									<a class="button" onclick="addTagsToSibling(this, '#section_text', '&lt;ul&gt;&lt;li&gt;&lt;/li&gt;&lt;li&gt;&lt;/li&gt;&lt;/ul&gt;')">List</a>
 									<textarea name="content" id="section_text" placeholder="The textual content of the lesson sections (can include HTML)" rows="6"></textarea>
 								</div>
+								<label for="section_text_preview">Content Preview (HTML Permitted) Bold:&lt;b&gt;&lt;/b&gt; Para:&lt;p&gt;&lt;/p&gt;Italic:&lt;i&gt;&lt;/i&gt;List:&lt;ul&gt;&lt;li&gt;&lt;/li&gt;&lt;li&gt;&lt;/li&gt;&lt;/ul&gt;</label>
 								<div class="12u" id="section_text_preview">
 									Hello there, this is a preview of what you are entering as text.
 								</div>
-								<label for="section_text_preview">Content Preview (HTML Permitted)</label>
 							</div>
 						</div>
 					</div>
@@ -177,8 +181,8 @@
 						<hr/>
 						<header class="major">
 							<h3 id="lesson_ref_title">LESSON REFERENCE</h2>
-							<a id="delete_lesson_button" class="lesson_selector button" onclick="deleteLessonFromCollection()">Delete</a>
-							<a id="save_lesson_button" class="lesson_selector button" onclick="saveLessonToCollection()">Save</a>
+							<a id="delete_lesson_button" class="lesson_selector button" onclick="deleteLessonFromCollection()">Delete Lesson</a>
+							<a id="save_lesson_button" class="lesson_selector button" onclick="saveLessonToCollection()">Save Lesson Data</a>
 						</header>
 						<div class="row uniform">
 							<div class="6u 12u(3)">
@@ -199,7 +203,7 @@
 						<div class="row uniform">
 							<div class="6u 12u(1)">
 								<input type="text" name="progress_options" id="progress_options" value="" placeholder="Looked At:0.1,Understood:0.5,Mastered:1.0" />
-								<label for="progress_options">The progress options (title:value,Example:0.5,Min:0.1,Max:1</label>
+								<label for="progress_options">The progress options (title:value,Example:0.5,Min:0.1,Max:1) eg   Looked at:0.1,Understood:0.5,Mastered:1</label>
 							</div>
 						</div>
 						<div class="row uniform">
