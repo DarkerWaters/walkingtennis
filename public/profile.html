@@ -105,10 +105,10 @@
 				</div>
 				<div class="row uniform">
 					<div class="6u 12u(3)">
+						<input type="text" id="home_location_lat" name="home location latitude" value="51.4933533" readonly/>
+						<input type="text" id="home_location_lon" name="home location longitude" value="-2.6259016" readonly/>
 						<span id="home_location_label"></span>
-							<input type="text" id="home_location_label" name="homeLocation" value="Not specified" readonly />
-							<label for="homeLocation">Home Location (we don't need your address; just a vague location is fine.)</label>
-						</span>
+						<label for="home_location_label">Home Location (we don't need your address; just a vague location is fine.)</label>
 					</div>
 					<div class="6u 12u(3)">
 						<a class="button" id='set_home_location_button' onclick="onSetHomeLocation();">Choose on Map</a>
@@ -125,6 +125,11 @@
 					</div>
 				</div>
 				<div class="row uniform">
+					<div class="6u 12u(3)">
+						<a class="button" id='edit_profile_button' onclick="enableEdit();">Change Details</a>
+						<a class="button" id='edit_profile_commit_button' onclick="saveEdits();" style="display: none;">Save Changes</a>
+						<a class="button" id='edit_profile_discard_button' onclick="discardEdits();" style="display: none;">Discard Changes</a>
+					</div>
 					<div class="6u 12u(3)">
 						<a class="button" id='change_password_button' onclick="enablePasswordChange();">Change Password</a>
 					</div>

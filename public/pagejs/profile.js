@@ -1,7 +1,7 @@
 // https://firebase.google.com/docs/auth/web/manage-users#get_the_currently_signed-in_user
 // need to manage the user data in this page
 
-var isChangedShareLocations = false;
+var isChangedLocation = false;
 var permittedLocationShareCount = 0;
 var locationSharesDeleted = [];
 
@@ -91,6 +91,14 @@ function ensureUpToDateUserData(user, data) {
 }
 
 function displayMembershipData(data) {
+    document.getElementById('home_location_lat').value = data['location'] ? data['location'].latitude : "";
+    document.getElementById('home_location_lon').value = data['location'] ? data['location'].longitude : "";
+    var locationString = "";
+    if (data['location']) {
+        locationString = data['location'].latitude + ", " + data['location'].longitude;
+    }
+    document.getElementById('home_location_label').innerHTML = locationString;
+
     var date = data['expiry_member'];
     if (date == null || date.toDate().getTime() > new Date().getTime()) {
         // there is no expiry, or it hasn't passed, this is active, we are a member
@@ -151,6 +159,9 @@ function populateUserData() {
         document.getElementById('profile_data').style.display = null;
         document.getElementById('name').value = user.displayName;
         document.getElementById('email').value = user.email;
+        document.getElementById('home_location_lat').value = "";
+        document.getElementById('home_location_lon').value = "";
+        document.getElementById('home_location_label').innerHTML = "";
         document.getElementById('email-verified').checked = user.emailVerified;
         document.getElementById('user_image').src = user.photoURL;
         document.getElementById('membership-member').checked = true;
@@ -172,6 +183,7 @@ function populateUserData() {
                 // we have the user data here, set the data correctly
                 displayMembershipData(data);
 
+                // display the communications options too
                 displayCommunicationOptions(data);
 
                 // be sure to update our map of their name and email etc that we keep a copy of
@@ -255,10 +267,19 @@ function resetPassword() {
 function enableEdit() {
     var nameEdit = document.getElementById('name');
     var emailEdit = document.getElementById('email');
+    var latEdit = document.getElementById('home_location_lat');
+    var lonEdit = document.getElementById('home_location_lon');
 
     // stop the entry fields from being readonly
     nameEdit.removeAttribute('readonly');
     emailEdit.removeAttribute('readonly');
+    latEdit.removeAttribute('readonly');
+    lonEdit.removeAttribute('readonly');
+
+    listenForChange(nameEdit, function() {isChangedLocation = true; setUserDataEdited(true);});
+    listenForChange(emailEdit, function() {isChangedLocation = true; setUserDataEdited(true);});
+    listenForChange(latEdit, function() {isChangedLocation = true; setUserDataEdited(true);});
+    listenForChange(lonEdit, function() {isChangedLocation = true; setUserDataEdited(true);});
 
     // hide the change button
     document.getElementById('edit_profile_button').style.display = 'none';
@@ -267,20 +288,48 @@ function enableEdit() {
     document.getElementById('edit_profile_discard_button').style.display = null;
 }
 
+function disableEdit() {
+    // hide the editing buttons
+    document.getElementById('edit_profile_commit_button').style.display = 'none';
+    document.getElementById('edit_profile_discard_button').style.display = 'none';
+    // and show the edit button
+    document.getElementById('edit_profile_button').style.display = null;
+    document.getElementById('edit_profile_commit_button').classList.remove('special');
+
+    // put the readonly back in
+    var nameEdit = document.getElementById('name');
+    var emailEdit = document.getElementById('email');
+    var latEdit = document.getElementById('home_location_lat');
+    var lonEdit = document.getElementById('home_location_lon');
+
+    // stop the entry fields from being readonly
+    nameEdit.setAttribute('readonly', true);
+    emailEdit.setAttribute('readonly', true);
+    latEdit.setAttribute('readonly', true);
+    lonEdit.setAttribute('readonly', true);
+}
+
+function setUserDataEdited(isChanged) {
+    if (isChanged) {
+        document.getElementById('edit_profile_commit_button').classList.add('special');
+    }
+    else {
+        document.getElementById('edit_profile_commit_button').classList.remove('special');
+    }
+}
+
 function saveEdits() {
     // save the changes in the values to the profile
     var user = firebaseData.getUser();
     var newName = document.getElementById('name').value;
     var newEmail = document.getElementById('email').value;
 
-    // hide the editing buttons
-    document.getElementById('edit_profile_commit_button').style.display = 'none';
-    document.getElementById('edit_profile_discard_button').style.display = 'none';
-    // and show the edit button
-    document.getElementById('edit_profile_button').style.display = null;
+    // disabled more editing
+    disableEdit();
 
     // update the data in the profile
     if (user != null) {
+        // update all the data in the profile here to that in the controls
         if (user.displayName !== newName) {
             user.updateProfile({
                 displayName: newName
@@ -309,15 +358,25 @@ function saveEdits() {
         }
         // if they changed the location, update the location to what they set
         if (isChangedLocation) {
-            setFirebaseUserLocation(user, 51.4545, -2.5879, function() {
-                // this change was successful
-                populateUserData();
-                location.reload();
-            }, function() {
-                // this change was not successful
-                populateUserData();
-            });
+            var latitude = Number(document.getElementById('home_location_lat').value);
+            var longitude = Number(document.getElementById('home_location_lon').value);
+            // create both types of location here
+            var locationData = {};
+            locationData['location'] = new firebase.firestore.GeoPoint(latitude, longitude);
+            locationData['geohash'] = encodeGeohash([latitude, longitude]);
+
+            // update this on the profile
+            firebaseData.updateUserData(user, locationData, 
+                function() {
+                    // yey
+                    isChangedLocation = false;
+                },
+                function(error) {
+                    // oops
+                    console.log("failed to set the home location for the user", error);
+                });
         }
+        document.getElementById('edit_profile_commit_button').classList.remove('special');
     }
 }
 
@@ -325,8 +384,9 @@ function discardEdits() {
     // throw out the changes in the values to the profile
     document.getElementById('edit_profile_commit_button').style.display = 'none';
     document.getElementById('edit_profile_discard_button').style.display = 'none';
-    // and show the edit button
-    document.getElementById('edit_profile_button').style.display = null;
+    // disabled more editing
+    disableEdit();
+    document.getElementById('edit_profile_commit_button').classList.remove('special');
     // put the old data back
     populateUserData();
 }
@@ -345,8 +405,7 @@ function getUserProfiles() {
 }
 
 function setShareLocationFlag(isChanged) {
-    isChangedShareLocations = isChanged;
-    if (isChangedShareLocations) {
+    if (isChanged) {
         document.getElementById('edit_share_location_commit_button').classList.add('special');
     }
     else {
