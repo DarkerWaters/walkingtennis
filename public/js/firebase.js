@@ -107,8 +107,6 @@ function updateFirebaseUserDisplay(user) {
     }
     // update user role details
     updateFirebaseUserItems(user);
-    // dispatch this change to the document
-    document.dispatchEvent(new Event('firebaseuserchange'));
 }
 
 function initialiseFirebaseLoginButton() {
@@ -121,6 +119,8 @@ function initialiseFirebaseLoginButton() {
         firebase.auth().onAuthStateChanged(function(user) {
             // update the display of the user here
             updateFirebaseUserDisplay(user);
+            // dispatch this change to the document
+            document.dispatchEvent(new Event('firebaseuserchange'));
         });
         signIn.onclick = signinFirebase;
     }

@@ -35,11 +35,11 @@ document.addEventListener('firebaseuserchange', function () {
                 // we can calc the distance and show only those within range
                 var dist = distance(
                     [center.latitude, center.longitude], 
-                    [data.home_location.latitude, data.home_location.longitude]);
+                    [data.location.latitude, data.location.longitude]);
                 // have the actual distance this is from the center - because we can get things too far away...
                 if (dist <= searchRadius) {
                     var marker = new google.maps.Marker({
-                        position: new google.maps.LatLng(data.home_location.latitude, data.home_location.longitude),
+                        position: new google.maps.LatLng(data.location.latitude, data.location.longitude),
                         map: map,
                         icon: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
                         title: data.user_name

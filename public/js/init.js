@@ -147,7 +147,12 @@
 		document.dispatchEvent(new Event('documentinitialised'));
 
 		// update the display of the firebase user
-		updateFirebaseUserDisplay(firebaseData.getUser());
+		var user = firebaseData.getUser();
+		updateFirebaseUserDisplay(user);
+		if (user) {
+			// dispatch this change to the document (cached user logged in)
+			document.dispatchEvent(new Event('firebaseuserchange'));
+		}
 	};
 
 	function importHtmlToElement(elmnt, isLastElement) {
