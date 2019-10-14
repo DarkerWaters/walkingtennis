@@ -10,7 +10,7 @@ function setLessonPlan(lessonPlan, collectionName) {
     activeLessonCollection = collectionName;
     removeLessonContent();
 
-    var user = getFirebaseUser();
+    var user = firebaseData.getUser();
     if (user) {
         // we are logged in
         displayAdminData(user);
@@ -20,80 +20,46 @@ function setLessonPlan(lessonPlan, collectionName) {
     }
 }
 
-function addLessonToPlan() {
-    // add a new lesson to the current plan
-    var lessonName = document.getElementById('lesson_plan_entry_name').value;
-
-    // create a new lesson
-    firebase.firestore().collection(activeLessonCollection).add({
-        name: "New Lesson",
-        subtitle: "A newly added lesson just now"
-    })
-    .then(function(newDocRef) {
-        // this worked, need to update the lesson plan to point to this
-        var planRef = firebase.firestore().collection("lesson_plans").doc(activeLessonPlan);
-        // update the array of lessons available in this plan - add another
-        var usersUpdate = {};
-        usersUpdate['lessons'] = firebase.firestore.FieldValue.arrayUnion(newDocRef);
-        usersUpdate['lessons_names'] = firebase.firestore.FieldValue.arrayUnion(lessonName);
-        return planRef.update(usersUpdate).then(function() {
-            // cool, this worked well - refresh the page
-            setLessonPlan(activeLessonPlan, activeLessonCollection);
-        })
-        .catch(function(error) {
-            // something wrong
-            console.error("Error updating lesson progress: ", error);
-        });
-    })
-    .catch(function(error) {
-        console.error("Error adding document: ", error);
-    });
-}
-
 function addLessonToCollection() {
     // add a new lesson to the current plan
-    firebase.firestore().collection(activeLessonCollection).add({
-        name: "New Lesson",
-        subtitle: "A newly added lesson just now",
-        priority: 0,
-        progress_options: ""
-    })
-    .then(function(newDocRef) {
-        // refresh the page
-        setLessonPlan(activeLessonPlan, activeLessonCollection);
-    })
-    .catch(function(error) {
-        console.error("Error adding document: ", error);
-    });
+    firebaseData.addLessonToCollection(activeLessonCollection,
+        function(newDocRef) {
+            // worked, refresh the display of this
+            setLessonPlan(activeLessonPlan, activeLessonCollection);
+        },
+        function(error) {
+            // failed
+            console.error("Error adding a new lesson: ", error);
+        }
+    );
 }
 
 function deleteLessonFromCollection() {
-    firebase.firestore().collection(activeLessonCollection).doc(currentLessonRef).delete().then(function() {
-        console.log("Document successfully deleted!");
-        removeLessonContent();
-        populateUserData();
-    }).catch(function(error) {
-        console.error("Error removing document: ", error);
-    });
+    firebaseData.deleteLesson(activeLessonCollection, currentLessonRef,
+        function() {
+            // this worked
+            removeLessonContent();
+            populateUserData();
+        },
+        function(error) {
+            // failed
+            console.error("Error removing lesson: ", error);
+        }
+    );
 }
 
 function addLessonSection() {
     // add a new section to the current lesson
-    firebase.firestore().collection(activeLessonCollection).doc(currentLessonRef).collection('contents').add({
-        title: "New Section",
-        priority: 0,
-        subtitle: "A newly added section just now",
-        text: "add your text content here",
-        image: "add a URL to an image here, have to have either this, a video, or both!",
-        video: "add a !!!<embed>!!! URL to a YouTube video here, have to have either this, an image, or both!"
-    })
-    .then(function(newDocRef) {
-        // refresh the page
-        showLessonSections()
-    })
-    .catch(function(error) {
-        console.error("Error adding document: ", error);
-    });
+    firebaseData.addLessonSection(activeLessonCollection, currentLessonRef,
+        function() {
+            // this worked
+            showLessonSections()
+        },
+        function(error) {
+            // failed
+            console.error("Error adding lesson section: ", error);
+        }
+    );
 }
 
 function displayAdminData(user) {
@@ -105,24 +71,25 @@ function displayAdminData(user) {
     var lessonsDiv = document.getElementById('lessons');
     var lessonPlansDiv = document.getElementById('lesson_plan_container');
     // populate this div with the lessons from firebase
-    var db = firebase.firestore();
-
-    // get the data for the user - get the lesson plan
-    const docRef = db.collection('lesson_plans').doc(activeLessonPlan)
-    docRef.get().then(function(doc) {
-        if (doc.exists) {
-            // do stuff with the data
-            displayLessonPlan(lessonPlansDiv, doc.data());
-        } else {
-            // error
-            lessonsDiv.innerHTML = 'failed to find the lesson plan, sorry...';
+    firebaseData.getLessonPlan(activeLessonPlan,
+        function(doc) {
+            // this worked
+            if (doc.exists) {
+                // do stuff with the data
+                displayLessonPlan(lessonPlansDiv, doc.data());
+            } else {
+                // error
+                lessonsDiv.innerHTML = 'failed to find the lesson plan, sorry...';
+            }
+        },
+        function(error) {
+            // failed
+            console.error("Error getting the lesson plan: ", error);
         }
-    }).catch(function(error) {
-        console.log("Error getting document:", error);
-    });
+    );
     
     // get all the lessons in the collection
-    db.collection(activeLessonCollection).orderBy("priority").get().then(
+    firebaseData.getCollectionLessons(true, activeLessonCollection,
         function(querySnapshot) {
             // clear all the current lessons
             var child = lessonsDiv.lastElementChild;  
@@ -137,33 +104,41 @@ function displayAdminData(user) {
             });
             // show the result
             lessonsDiv.style.display = null;
+        },
+        function(error) {
+            // failed
+            console.error("Error getting the lessons: ", error);
         }
     );
 }
 
 function createLessonPlanFromOrder() {
     // this will overwrite the lesson plan with the collection of lessons, and their ordering
-    var db = firebase.firestore();
-    db.collection(activeLessonCollection).where("priority", ">", 0).orderBy("priority").get().then(
+    firebaseData.getCollectionLessons(false, activeLessonCollection,
         function(querySnapshot) {
             // get each lesson in the snapshot, create the lesson plan from this (zero excluded otherwise in order)
             var lessonsRefs = [];
             var lessonsNames = [];
+            var db = firebase.firestore();
             querySnapshot.forEach(function(doc) {
                 // doc.data() is never undefined for query doc snapshots, add the name and the ref to the arrays created
                 lessonsRefs.push(db.doc('/' + activeLessonCollection + '/' + doc.id));
                 lessonsNames.push(doc.data()['name']);
             });
-            var lessonData = {};
-            lessonData['lessons'] = lessonsRefs;
-            lessonData['lessons_names'] = lessonsNames;
-            // send this to firestore to replace the plan
-            db.collection('lesson_plans').doc(activeLessonPlan).set(lessonData).then(function() {
-                console.log("Document successfully updated");
-                displayAdminData();
-            }).catch(function(error) {
-                console.error("Error removing document: ", error);
-            });
+            firebaseData.setLessonPlan(activeLessonPlan, lessonsRefs, lessonsNames,
+                function() {
+                    // this worked
+                    displayAdminData();
+                },
+                function(error) {
+                    // failed
+                    console.error("Error setting the lesson plan: ", error);
+                }
+            );
+        },
+        function(error) {
+            // failed
+            console.error("Error getting the collection lessons: ", error);
         }
     );
 }
@@ -262,21 +237,21 @@ function showLessonContent(lessonRef) {
     removeLessonContent();
 
     // populate the div with the lesson content from firebase
-    var db = firebase.firestore();
-    // get the data for the user
-    db.collection(activeLessonCollection).doc(lessonRef).get().then(function(doc) {
-        if (doc.exists) {
-            // show this lesson content
-            displayLessonContent(doc.data());
-        } else {
-            // error
+    firebaseData.getLesson(activeLessonCollection, lessonRef,
+        function(doc) {
+            if (doc.exists) {
+                // show this lesson content
+                displayLessonContent(doc.data());
+            } else {
+                // error
+                removeLessonContent();
+                document.getElementById('lesson_content').innerHTML = "Sorry, couldn't find a lesson for " + lessonRef;
+            }
+        },
+        function(error) {
             removeLessonContent();
-            document.getElementById('lesson_content').innerHTML = "Sorry, couldn't find a lesson for " + lessonRef;
-        }
-    }).catch(function(error) {
-        removeLessonContent();
-        console.log("Error getting document:", error);
-    });
+            console.log("Error getting lesson content:", error);
+        });
 }
 
 function showLessonSections() {
@@ -284,17 +259,18 @@ function showLessonSections() {
     removeLessonSections();
 
     // now get them all
-    // get all the sections in the lesson
-    firebase.firestore().collection(activeLessonCollection + '/' + currentLessonRef + '/contents').orderBy("priority").get().then(
-        function (querySnapshot) {
+    firebaseData.getLessonSections(true, activeLessonCollection, currentLessonRef,
+        function(querySnapshot) {
             // we have all the contents of the lesson now, put each content found back in
             var sectionContainer = document.getElementById('lesson_section_container');
             querySnapshot.forEach(function (doc) {
                 // doc.data() is never undefined for query doc snapshots
                 createLessonContentsDiv(sectionContainer, doc.id, doc.data());
             });
-        }
-    );
+        },
+        function(error) {
+            console.log("Failed to get the lesson sections: ", error);
+        });
 }
 
 function saveLessonToCollection() {
@@ -306,15 +282,17 @@ function saveLessonToCollection() {
     lessonData['subtitle'] = document.getElementById('subtitle').value;
     lessonData['progress_options'] = document.getElementById('progress_options').value;
 
-    firebase.firestore().collection(activeLessonCollection).doc(currentLessonRef).set(lessonData).then(function() {
-        console.log("Document successfully updated");
-        // remove the red (saved now)
-        document.getElementById('save_lesson_button').classList.remove('special');
-        // and show the new order if it changed
-        displayAdminData();
-    }).catch(function(error) {
-        console.error("Error removing document: ", error);
-    });
+    firebaseData.setLesson(activeLessonCollection, currentLessonRef, lessonData, 
+        function() {
+            // this worked, remove the red (saved now)
+            document.getElementById('save_lesson_button').classList.remove('special');
+            // and show the new order if it changed
+            displayAdminData();
+        },
+        function(error) {
+            // this failed
+            console.error("Error setting the lesson data: ", error);
+        });
 }
 
 function removeLessonSections() {
@@ -478,48 +456,54 @@ function saveLessonSection(sectionRef, sectionContainer) {
     sectionData['image'] = sectionContainer.querySelector('#section_image').value;
     sectionData['text'] = sectionContainer.querySelector('#section_text').value;
 
-    sectionContainer.querySelector('#save_lesson_section_button').classList.remove('special');
-    
     // and send to firestore
-    firebase.firestore().collection(activeLessonCollection + '/' + currentLessonRef + '/contents').doc(sectionRef).set(sectionData).then(function() {
-        console.log("Document successfully updated");
-    }).catch(function(error) {
-        console.error("Error removing document: ", error);
-    });
+    firebaseData.setLessonSection(activeLessonCollection, currentLessonRef, sectionRef, sectionData,
+        function() {
+            // this worked - remove the red from the button
+            sectionContainer.querySelector('#save_lesson_section_button').classList.remove('special');
+        },
+        function() {
+            // this failed
+            console.error("Error saving the lesson section: ", error);
+        });
 }
 
 function deleteLessonSection(sectionRef) {
     // delete this section from the database
-    firebase.firestore().collection(activeLessonCollection + '/' + currentLessonRef + '/contents').doc(sectionRef).delete().then(function() {
-        console.log("Document successfully deleted!");
-        showLessonSections();
-    }).catch(function(error) {
-        console.error("Error removing document: ", error);
-    });
+    firebaseData.deleteLessonSection(activeLessonCollection, currentLessonRef, sectionRef,
+        function() {
+            // this worked
+            showLessonSections();
+        },
+        function() {
+            // this failed
+            console.error("Error deleting the lesson section: ", error);
+        });
 }
 
 // need to manage the data in this page
 function populateUserData() {
-    var user = getFirebaseUser();
+    var user = firebaseData.getUser();
     if (user) {
         // we are logged in
         displayAdminData(user);
-        // get the user data from firebase here
-        getFirebaseUserData(user, function(data) {
-            // we have the user data here, set the data correctly
-            if (isFirebaseUserAdmin(data)) {
-                // we are a coach
-                displayAdminData(user);
-            }
-            else {
-                // we are not a coach
+        firebaseData.getUserData(user, 
+            function(data) {
+                // we have the user data here, set the data correctly
+                if (firebaseData.isUserAdmin(data)) {
+                    // we are a coach
+                    displayAdminData(user);
+                }
+                else {
+                    // we are not an admin user - hide it all
+                    hideAdminData(user);
+                }
+            },
+            function(error) {
+                // this is the failure to get the data, do our best I suppose
                 hideAdminData(user);
-            }
-        }, function() {
-            // this is the failure to get the data, do our best I suppose
-            hideAdminData(user);
-            console.log("Failed to get the firestore user data for " + user);
-        });
+                console.log("Failed to get the firestore user data for " + user);
+            });
     }
     else {
         // we are not logged in, ask the user to log in

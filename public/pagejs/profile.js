@@ -9,7 +9,7 @@ function showMembershipChange() {
 };
 
 function sendEmailVerfication() {
-    var user = firebase.auth().currentUser;
+    var user = firebaseData.getUser();
     if (user) {
         user.sendEmailVerification().then(function() {
             // Email sent.
@@ -75,7 +75,7 @@ function setFirebaseUserLocation(user, latitude, longitude, onSuccess, onFailure
 }
 
 function populateUserData() {
-    var user = getFirebaseUser();
+    var user = firebaseData.getUser();
     if (user) {
         // populate the form
         document.getElementById('profile_data').style.display = null;
@@ -95,55 +95,56 @@ function populateUserData() {
             document.getElementById('send_verification').style.display = null;
         }
         // get the user data from firebase here
-        getFirebaseUserData(user, function(data) {
-            // we have the user data here, set the data correctly
-            var date = data['expiry_member'];
-            if (date == null || date.toDate().getTime() > new Date().getTime()) {
-                // there is no expiry, or it hasn't passed, this is active, we are a member
-                document.getElementById('membership-coach').checked = true;
-            }
-            else {
-                // the expiry date has passed
-                document.getElementById('membership-coach').checked = false;
-            }
-            
-            date = data['expiry_coach'];
-            if (date == null || date.toDate().getTime() > new Date().getTime()) {
-                // there is no expiry, or it hasn't passed, this is active, we are a coach
-                document.getElementById('membership-coach').checked = true;
-                if (date == null) {
-                    // lasts forever
-                    document.getElementById('membership-coach-expiry').value = "never";
+        firebaseData.getUserData(user, 
+            function(data) {
+                // we have the user data here, set the data correctly
+                var date = data['expiry_member'];
+                if (date == null || date.toDate().getTime() > new Date().getTime()) {
+                    // there is no expiry, or it hasn't passed, this is active, we are a member
+                    document.getElementById('membership-coach').checked = true;
                 }
                 else {
-                    // else there is an expiry date
-                    document.getElementById('membership-coach-expiry').value = date.toDate().toLocaleDateString();
+                    // the expiry date has passed
+                    document.getElementById('membership-coach').checked = false;
                 }
-                // and show it
-                document.getElementById('membership-coach-expiry-input').style.display = 'inline';
-            }
-            else {
-                // the expiry date has passed
-                document.getElementById('membership-coach').checked = false;
-                document.getElementById('membership-coach-expiry-input').style.display = 'none';
-            }
+                
+                date = data['expiry_coach'];
+                if (date == null || date.toDate().getTime() > new Date().getTime()) {
+                    // there is no expiry, or it hasn't passed, this is active, we are a coach
+                    document.getElementById('membership-coach').checked = true;
+                    if (date == null) {
+                        // lasts forever
+                        document.getElementById('membership-coach-expiry').value = "never";
+                    }
+                    else {
+                        // else there is an expiry date
+                        document.getElementById('membership-coach-expiry').value = date.toDate().toLocaleDateString();
+                    }
+                    // and show it
+                    document.getElementById('membership-coach-expiry-input').style.display = 'inline';
+                }
+                else {
+                    // the expiry date has passed
+                    document.getElementById('membership-coach').checked = false;
+                    document.getElementById('membership-coach-expiry-input').style.display = 'none';
+                }
 
-            // to be sure we have an up-to-date picture of our user, let's update their name and email here if wrong...
-            if (data['name'] !== user.displayName || data['email' !== user.email]) {
-                // update our data held about them here
-                const docRef = firebase.firestore().collection('users').doc(user.uid)
-                docRef.update({
-                    name: user.displayName,
-                    email: user.email
-                }).catch(function(error) {
-                    console.log("Error updating user information held against them", error);
-                });
-            }
+                // to be sure we have an up-to-date picture of our user, let's update their name and email here if wrong...
+                if (data['name'] !== user.displayName || data['email' !== user.email]) {
+                    // update our data held about them here
+                    const docRef = firebase.firestore().collection('users').doc(user.uid)
+                    docRef.update({
+                        name: user.displayName,
+                        email: user.email
+                    }).catch(function(error) {
+                        console.log("Error updating user information held against them", error);
+                    });
+                }
 
-        }, function() {
-            // this is the failure to get the data, do our best I suppose
-            console.log("Failed to get the firestore user data for " + user);
-        });
+            }, function(error) {
+                // this is the failure to get the data, do our best I suppose
+                console.log("Failed to get the firestore user data for " + user + ":", error);
+            });
     }
     else {
         // hide the form
@@ -167,7 +168,7 @@ function deleteMembershipCountdown() {
 
 function deleteMembership() {
     // okay, let's delete the membership data here
-    var user = getFirebaseUser();
+    var user = firebaseData.getUser();
     if (!user) {
         // they don't seem to be logged in
         alert("Sorry about this, but you don't seem to be logged in properly, try refreshing the page and starting again." );
@@ -193,7 +194,7 @@ function resetPassword() {
     // check the password values
     var passwordOneControl = document.getElementById('password_one');
     var passwordTwoControl = document.getElementById('password_two');
-    var user = getFirebaseUser();
+    var user = firebaseData.getUser();
     if (user && passwordOneControl.value === passwordTwoControl.value) {
         // this is the new password
         user.updatePassword(passwordOneControl.value).then(function () {
@@ -227,7 +228,7 @@ function enableEdit() {
 
 function saveEdits() {
     // save the changes in the values to the profile
-    var user = getFirebaseUser();
+    var user = firebaseData.getUser();
     var newName = document.getElementById('name').value;
     var newEmail = document.getElementById('email').value;
 
@@ -290,7 +291,7 @@ function discardEdits() {
 }
 
 function getUserProfiles() {
-    var user = getFirebaseUser();
+    var user = firebaseData.getUser();
     if (user != null) {
         user.providerData.forEach(function (profile) {
             console.log("Sign-in provider: " + profile.providerId);

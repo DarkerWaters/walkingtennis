@@ -147,7 +147,7 @@
 		document.dispatchEvent(new Event('documentinitialised'));
 
 		// update the display of the firebase user
-		updateFirebaseUserDisplay(getFirebaseUser());
+		updateFirebaseUserDisplay(firebaseData.getUser());
 	};
 
 	function importHtmlToElement(elmnt, isLastElement) {
