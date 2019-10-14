@@ -79,13 +79,18 @@
 				<p>View and update your Walking Tennis data here...</p>
 			</header>
 			<form id='profile_data' method="post" action="#">
-				<span class="image left">
-					<img id='user_image' src="images/generic/pic07.jpg" alt="users image" />
-					<a class="button special" id='log_out' onclick="logout();">Log out...</a>
-					<a class="button" id='edit_profile_button' onclick="enableEdit();">Change Details</a>
-					<a class="button" id='edit_profile_commit_button' onclick="saveEdits();" style="display: none;">Save Changes</a>
-					<a class="button" id='edit_profile_discard_button' onclick="discardEdits();" style="display: none;">Discard Changes</a>
-				</span>
+				<div class="row uniform">
+					<div class="3u 12u(3)">
+						<span class="image fill">
+							<img id='user_image' src="images/generic/pic07.jpg" alt="users image" />
+							<a class="button special" id='log_out' onclick="logout();">Log out...</a>
+						</span>
+					</div>
+				</div>
+				<header class="major">
+					<h3>Personal details (will remain private)</h3>
+				</header>
+				<p>These are typically set from your log-in, we won't share or sell to anyone. We need them as we are legally obliged to tell you of changes to the site or our policies or something. The location is recommended so, if you choose to, you can receive messages relevant to your location. You probably aren't interested in a shop if it's the other side of the world (O;</p>
 				<div class="row uniform">
 					<div class="6u 12u(3)">
 						<input type="text" name="name" id="name" value="" placeholder="Name" readonly />
@@ -93,39 +98,129 @@
 					</div>
 					<div class="6u 12u(3)">
 						<input type="email" name="email" id="email" value="" placeholder="Email" readonly />
-						<input type="checkbox" id="email-verified" name="email-verified" onclick="return false;">
+						<input type="checkbox" id="email-verified" name="email verified" onclick="return false;" />
 						<label for="email-verified">Email Verified</label>
 						<a class="button special" id='send_verification' onclick="sendEmailVerfication();">Send verification email...</a>
 					</div>
 				</div>
 				<div class="row uniform">
-					<div class="3u 12u(3)">
-						<a class="button" id='change_password_button' onclick="enablePasswordChange();">Change Password</a>
+					<div class="6u 12u(3)">
+						<span id="home_location_label"></span>
+							<input type="text" id="home_location_label" name="homeLocation" value="Not specified" readonly />
+							<label for="homeLocation">Home Location (we don't need your address; just a vague location is fine.)</label>
+						</span>
 					</div>
-					<div id="change_password_container" class="3u 12u(3)" style="display: none;">
+					<div class="6u 12u(3)">
+						<a class="button" id='set_home_location_button' onclick="onSetHomeLocation();">Choose on Map</a>
+					</div>
+					<div id="change_password_container" class="6u 12u(3)" style="display: none;">
 						<p>
-							<input type="password" name="password_one" id="password_one" value="" />
+							<input type="password" name="password one" id="password_one" value="" />
 						</p>
 						<p>
-							<input type="password" name="password_two" id="password_two" value="" />
+							<input type="password" name="password two" id="password_two" value="" />
 						</p>
 						<label for="password_two">Enter a new password (twice)</label>
 						<a class="button" id='reset_password' onclick="resetPassword();">Save</a>
 					</div>
 				</div>
 				<div class="row uniform">
+					<div class="6u 12u(3)">
+						<a class="button" id='change_password_button' onclick="enablePasswordChange();">Change Password</a>
+					</div>
+				</div>
+				<p></p>
+				<header class="major">
+					<h3>Communications preferences</h3>
+				</header>
+				<div class="row uniform">
+					<div class="4u 12u(3)">
+						<input type="checkbox" id="isRx-emailFromWkta" name="email from WkTA" checked='true' onclick="return false;" />
+						<label for="isRx-emailFromWkta">Receive essential Emails from the WkTA</label>
+					</div>
+					<div class="4u 12u(3)">
+						<input type="checkbox" id="isRx-emailFromPlayers" name="email from players" onclick="onClickEmailFromPlayers();" />
+						<label for="isRx-emailFromPlayers">Receive Emails from other WkTA members</label>
+					</div>
+					<div class="4u 12u(3)">
+						<input type="checkbox" id="isRx-emailFromPartners" name="email from partners" onclick="onClickEmailFromPartners();" />
+						<label for="isRx-emailFromPartners">Receive Emails from WkTA partners</label>
+					</div>
+				</div>
+				<p></p>
+				<div class="row uniform">
+					<!-- locations to share -->
+					<div class="6u 12u(3)">
+						<input type="checkbox" id="is_share_location" name="is share location" onclick="onClickShareLocation();">
+						<label for="is_share_location">Share location with other WkTA members (to find partners to play with)</label>
+					</div>
+					<div class="6u 12u(3)" id="share_locations_map">
+						<!-- will contain the map of shared locations -->
+					</div>
+					<div class="table-wrapper 12u 12u(3)">
+						<table id="location_share_table_template" class="alt" style="display: none;">
+							<tr id="location_share_location_template_row">
+								<td>
+									<input type="text" id="location_share_ref" name="location share reference" value="Home Court"/>
+									<a class="button fit small" id='location_add_location_button' onclick="onClickDeleteSharedLocation(this);">Delete</a>
+								</td>
+								<td>
+									<input type="text" id="location_share_name" name="location share name" value="Your name here"/>
+								</td>
+								<td>
+									<input type="email" id="location_share_email" name="location share email" value="your email here"/>
+								</td>
+								<td>
+									<input type="text" id="location_share_lat" name="location share latitude" value="51.4933533"/>
+									<input type="text" id="location_share_lon" name="location share longitude" value="-2.6259016"/>
+									<span id="location_share_location">51.4933533, -2.6259016</span>
+									<a class="button fit small" id='location_share_location_button' onclick="onClickChooseShareLocation(this);">Choose on map</a>
+								</td>
+							</tr>
+						</table>
+						<table id="location_share_table" class="alt" style="display: none;">
+							<thead>
+								<tr>
+									<th>Title (for you)</th>
+									<th>Name to share</th>
+									<th>Email to share</th>
+									<th>At Location</th>
+								</tr>
+							</thead>
+							<tbody>
+							</tbody>
+							<tfoot>
+								<tr>
+									<td><a class="button fit small" id='location_add_location_button' onclick="onClickAddSharedLocation();">Add</a></td>
+									<td colspan="2">You can share up to <b><span id="lcount_permitted"></span></b> locations, choose your nickname and email to share. Leave empty to not show one.</td>
+								</tr>
+							</tfoot>
+						</table>
+					</div>
+					<div class="6u 12u(3)">
+						<span>
+							<a class="button" id='edit_share_location_commit_button' onclick="saveLocationShareEdits();">Save Changes</a>
+							<a class="button" id='edit_share_location_discard_button' onclick="discardLocationShareEdits();">Discard Changes</a>
+						</span>
+					</div>
+				</div>
+				<p></p>
+				<header class="major">
+					<h3>Membership settings</h3>
+				</header>
+				<div class="row uniform">
 					<div class="6u 12u(2)">
-						<input type="checkbox" id="membership-member" name="membership-member" onclick="return false;">
+						<input type="checkbox" id="membership-member" name="membership member" onclick="return false;" />
 						<label for="membership-member">Standard Member</label>
 					</div>
 					<div class="6u 12u(2)">
 						<span>
 							<span>
-								<input type="checkbox" id="membership-coach" name="membership-coach" style="display: inline" onclick="return false;">
+								<input type="checkbox" id="membership-coach" name="membership coach" style="display: inline" onclick="return false;" />
 								<label for="membership-coach">Coach</label>
 							</span>
 							<span id="membership-coach-expiry-input" style="display: none">
-								<input type="text" id="membership-coach-expiry" name="membership-coach-expiry" style="width: 50%; display: inline; " readonly >
+								<input type="text" id="membership-coach-expiry" name="membership coach expiry date" style="width: 50%; display: inline; " readonly />
 								<label for="membership-coach-expiry" style="display: inline">Expiry</label>
 							</span>
 						</span>
@@ -133,7 +228,7 @@
 				</div>
 				<div>
 					<br/>
-					<a class="button special" id='membership_button' onclick="showMembershipChange();">Change Membership Level</a>
+					<a class="button" id='membership_button' onclick="showMembershipChange();">Change Membership Level</a>
 				</div>
 				<div id='change_membership' style='display:none'>
 					<header class="major">
@@ -181,6 +276,15 @@
 			&copy; Copyright. All rights reserved. Design by Darker Waters LTD
 		</span>
 	</footer>
+
+	<!--Load the API from the specified URL
+    * The async attribute allows the browser to render the page while the API loads
+    * The key parameter will contain your own API key (which is not needed for this tutorial)
+    * The callback parameter executes the initMap() function
+    -->
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXBNipFTi6XwCrdyg_1H6Hfi-Z6ke-R8A&callback=initMap">
+    </script>
 </body>
 
 </html>

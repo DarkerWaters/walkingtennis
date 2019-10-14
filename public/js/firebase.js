@@ -228,6 +228,26 @@ const firebaseData = {
             onFailure ? onFailure(error) : console.log("Failed to update the document: ", error);
         });
     },
+
+    deleteAllUserData : function(user, onSuccess, onFailure) {
+        // delete all the location shared
+        this.deleteUserShareLocations(user, 
+            function() {
+                // yey
+            },
+            function(error) {
+                // oops
+                console.log("Failed to delete a shared location for a deleted user account", error);
+            });
+        
+        // and delete the user document we have stored
+        firebase.firestore().collection("users").doc(user.uid).delete().then(function() {
+            logout();
+        }).catch(function(error) {
+            alert("Sorry about this, but there was some error in removing all your data, please contact us to confirm all you data was in-fact removed. Please reference this weird set of letters to help us find it: '" + user.uid + "'." );
+            console.error("Error removing document: ", error);
+        });
+    },
     
     checkDataExpiryDate : function(firebaseUserData, dataTitle) {
         if (firebaseUserData) {
@@ -302,18 +322,38 @@ const firebaseData = {
     },
 
     deleteLesson : function(lessonCollection, lessonRef, onSuccess, onFailure) {
-        firebase.firestore().collection(lessonCollection).doc(lessonRef).delete()
-        .then(function() {
-            // this worked
-            onSuccess ?  onSuccess() : null;
-        })
-        .catch(function(error) {
-            // this didn't work
-            onFailure ? onFailure(error) : console.log("Failed to delete the document: ", error);
-        });
+        // firestore does not delete child collections by default, we have to do that ourselves then...
+        var dataParent = this;
+        this.getLessonSections(true, lessonCollection, lessonRef,
+            function(querySnapshot) {
+                // for each section, delete each one
+                querySnapshot.forEach(function (doc) {
+                    dataParent.deleteLessonSection(lessonCollection, lessonRef, doc.id, 
+                        function() {
+                            // deleted, sweet...
+                        },
+                        function(error) {
+                            // error deleting child
+                            onFailure ? onFailure(error) : console.log("Failed to delete the child document: ", error);
+                        });
+                });
+                // now we have deleted all the sections, we can delete the parent lesson
+                firebase.firestore().collection(lessonCollection).doc(lessonRef).delete()
+                .then(function() {
+                    // this worked
+                    onSuccess ?  onSuccess() : null;
+                })
+                .catch(function(error) {
+                    // this didn't work
+                    onFailure ? onFailure(error) : console.log("Failed to delete the document: ", error);
+                });
+            },
+            function(error) {
+                onFailure ? onFailure(error) : console.log("Failed to delete the document: ", error);    
+            });  
     },
 
-    getLesson(lessonCollection, lesson, onSuccess, onFailure) {
+    getLesson : function(lessonCollection, lesson, onSuccess, onFailure) {
         firebase.firestore().collection(lessonCollection).doc(lesson).get()
         .then(function(doc) {
             // this worked
@@ -466,5 +506,79 @@ const firebaseData = {
             // this didn't work
             onFailure ? onFailure(error) : console.log("Failed to set the document data: ", error);
         });
-    }
+    },
+
+    getUserShareLocations : function(user, onSuccess, onFailure) {
+        // get all the locations this user is sharing right now
+        firebase.firestore().collection('locations').where("user_uid", "==", user.uid).orderBy("reference").get()
+        .then(function(querySnapshot) {
+            // this worked
+            onSuccess ?  onSuccess(querySnapshot) : null;
+        })
+        .catch(function(error) {
+            // this didn't work
+            onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
+        });
+    },
+
+    deleteUserShareLocations : function(user, onSuccess, onFailure) {
+        // get all the locations this user is sharing right now
+        var dataParent = this;
+        this.getUserShareLocations(user, 
+            function(querySnapshot) {
+                // now we have them all, delete them all please
+                querySnapshot.forEach(function (doc) {
+                    // for each document, delete the document
+                    dataParent.deleteUserShareLocation(doc.id, 
+                        function() {
+                            // deleted, sweet...
+                        },
+                        function(error) {
+                            // error deleting child
+                            onFailure ? onFailure(error) : console.log("Failed to delete the child location: ", error);
+                        });
+                });
+            },
+            function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
+            });
+    },
+
+    deleteUserShareLocation : function(locationRef, onSuccess, onFailure) {
+        // get all the locations this user is sharing right now
+        firebase.firestore().collection('locations').doc(locationRef).delete()
+        .then(function(querySnapshot) {
+            // this worked
+            onSuccess ?  onSuccess(querySnapshot) : null;
+        })
+        .catch(function(error) {
+            // this didn't work
+            onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
+        });
+    },
+
+    setUserShareLocation : function(locationRef, locationData, onSuccess, onFailure) {
+        firebase.firestore().collection('locations').doc(locationRef).set(locationData)
+        .then(function() {
+            // this worked
+            onSuccess ?  onSuccess() : null;
+        })
+        .catch(function(error) {
+            // this didn't work
+            onFailure ? onFailure(error) : console.log("Failed to set the document data: ", error);
+        });
+    },
+
+    addUserShareLocation : function(locationData, onSuccess, onFailure) {
+        firebase.firestore().collection('locations').add(locationData)
+        .then(function(newDocRef) {
+            // this worked
+            onSuccess ?  onSuccess(newDocRef) : null;
+        })
+        .catch(function(error) {
+            // this didn't work
+            onFailure ? onFailure(error) : console.log("Failed to add the document: ", error);
+        });
+    },
 };

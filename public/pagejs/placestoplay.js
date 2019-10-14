@@ -1,55 +1,3 @@
-function showMapForState(state, MAX_DISTANCE) {
-    var map;
-    var resultCount = 0,
-        totalDistanceKm = 0,
-        matchCount = 0,
-        matchDistanceKm = 0,
-        docs = {},
-        maxDistanceKm = 0;
-    var center = states[state].capital.location;
-    document.getElementById('map').innerHTML = "";
-
-    var queries = getQueriesForDocumentsAround(collection, center, MAX_DISTANCE);
-    queries.forEach(function (query) {
-        query.get().then(function (querySnapshot) {
-            if (!map) {
-                map = new google.maps.Map(document.getElementById('map'), {
-                    center: {
-                        lat: center.lat,
-                        lng: center.lon
-                    },
-                    zoom: 8
-                });
-            }
-            querySnapshot.forEach(function (doc) {
-                var data = doc.data();
-                resultCount++;
-                var dist = distance([center.lat, center.lon], [data.location.latitude, data.location.longitude]);
-                if (dist <= MAX_DISTANCE && !docs[doc.id]) {
-                    docs[doc.id] = doc.data();
-                    matchCount++;
-                    matchDistanceKm += dist;
-                    //console.log("This one is IN range: "+data.location.latitude+","+data.location.longitude);
-                }
-                totalDistanceKm += dist;
-                if (dist > maxDistanceKm) {
-                    maxDistanceKm = dist;
-                }
-                //console.log(doc.id+": "+data.location.latitude+","+data.location.longitude+" at "+dist);
-                var marker = new google.maps.Marker({
-                    position: new google.maps.LatLng(data.location.latitude, data.location.longitude),
-                    map: map,
-                    icon: 'https://maps.google.com/mapfiles/ms/icons/' + (dist <= MAX_DISTANCE ? 'green' : 'red') + '-dot.png',
-                    title: doc.id
-                });
-            });
-            console.log("The total " + resultCount + " query results are a total of " + Math.round(totalDistanceKm) + "km from the center, docs.length=" + Object.keys(docs).length + " matchCount=" + matchCount + " matchDistance=" + Math.round(matchDistanceKm) + "km");
-            summaryElm.innerText = "The total " + resultCount + " query results are a total of " + Math.round(totalDistanceKm) + "km from the center, docs.length=" + Object.keys(docs).length + " matchCount=" + matchCount + " matchDistance=" + Math.round(matchDistanceKm) + "km";
-            //console.log(docs);
-        });
-    })
-}
-
 function getQueriesForDocumentsAround(ref, center, radiusInKm) {
     var geohashesToQuery = geohashQueries([center.latitude, center.longitude], radiusInKm * 1000);
     console.log(JSON.stringify(geohashesToQuery));
@@ -64,7 +12,8 @@ document.addEventListener('firebaseuserchange', function () {
     var map;
     var center = new firebase.firestore.GeoPoint(51.5, -2.6);
     var searchRadius = 25;
-    document.getElementById('map').innerHTML = "";
+    var mapElement = document.getElementById('map');
+    mapElement.innerHTML = "";
 
     // there is a user, this is the document we want to change
     var locationsRef = firebase.firestore().collection("locations");
@@ -73,7 +22,7 @@ document.addEventListener('firebaseuserchange', function () {
     queries.forEach(function (query) {
         query.get().then(function (querySnapshot) {
             if (!map) {
-                map = new google.maps.Map(document.getElementById('map'), {
+                map = new google.maps.Map(mapElement, {
                     center: {
                         lat: center.latitude,
                         lng: center.longitude

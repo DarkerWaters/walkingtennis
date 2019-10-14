@@ -24,6 +24,7 @@ service cloud.firestore {
     function noInvalidDataChange() {
     	return notUpdating('isAdmin') &&
             notUpdating('joined_date') &&
+            notUpdating('lcount_permitted') &&
       			notUpdating('expiry_coach') &&
             notUpdating('expiry_member');
     }
@@ -60,8 +61,10 @@ service cloud.firestore {
     match /locations/{documents=**} {
       // allow members to read this published information
     	allow read: if isMember();
-      // allow the users to create, update and write their own data
-      allow write, create, update, delete: if request.auth.uid == request.resource.data['user_uid'] || isAdmin();
+      // only allow the users to create, update and write their own data
+      allow write, create, update : if (request.auth.uid == request.resource.data['user_uid'] && request.auth.uid == resource.data['user_uid']) || isAdmin();
+      // can delete if the request comes from the user uid who owns the data (or admin)
+      allow delete : if request.auth.uid == resource.data['user_uid'] || isAdmin();
     }
   }
 }

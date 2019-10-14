@@ -26,6 +26,10 @@ exports.createUserData = functions.auth.user().onCreate((user) => {
         name: user.displayName,
         email: user.email,
         isAdmin: false,
+        lcount_permitted: 5,
+        isRxEmailFromWkta: true,
+        isRxEmailFromPlayers: true,
+        isRxEmailFromPartners: true,
         joined_date: fieldValue.serverTimestamp(),
         expiry_coach: fieldValue.serverTimestamp(),
         expiry_member: null
