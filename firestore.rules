@@ -25,6 +25,7 @@ service cloud.firestore {
     	return notUpdating('isAdmin') &&
             notUpdating('joined_date') &&
             notUpdating('lcount_permitted') &&
+            notUpdating('lpromotions_permitted') &&
       			notUpdating('expiry_coach') &&
             notUpdating('expiry_member');
     }

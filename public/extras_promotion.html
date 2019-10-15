@@ -6,7 +6,7 @@
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 	<meta name="description" content="" />
 	<meta name="keywords" content="" />
-	<title>The Rules of Walking Tennis</title>
+	<title>Walking Tennis Promotion</title>
 
 	<!-- update the version number as needed -->
 	<script defer src="/__/firebase/7.0.0/firebase-app.js"></script>
@@ -23,6 +23,8 @@
 	<script defer src="/__/firebase/init.js"></script>
 
 	<!-- add our page specific javascript here -->
+	<script src="js/geofire.js"></script>
+	<script src="pagejs/extras_promotion.js"></script>
 
 	<!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
 	<script src="js/jquery.min.js"></script>
@@ -80,72 +82,76 @@
 		</nav>
 	</header>
 
-	<section id="basic" class="wrapper style1">
+	<!-- Main -->
+	<section id="main" class="wrapper style1">
 		<div class="container">
 			<header class="major">
-				<h2>The Rules of Walking Tennis</h2>
-				<p>Walking Tennis is a light adaptation of normal tennis. All the standard rules apply, but for a few specific changes:
-				</p>
+				<h2>Walking Tennis Promotion Otions</h2>
+				<p>Advanced subscribers get the opportunity to promote themselves or their business with the WkTA here...</p>
 			</header>
-			<div class="row">
-				<p>
-					<span class="image right fit"><img src="images/pictures/lady-rear-walking.jpg" alt="playing tennis"/></span>
-					<b>Option of a second bounce</b>
-					<br/>In walking tennis you have the option of a second bounce.
-					<br/>* The second bounce must land within the court lines.
-					<br/>* The second bounce must land within the appropriate court markings (that is singles lines for singles, and doubles for doubles).
-					<br/><br/><b>Running is not permitted</b>
-					<br/>You are not allowed to break into a run.
-					<br/>* Running is defined as both feet leaving the ground, even momentarily.
-					<br/>* As both feet leaving the ground isn't allowed; that will obviously include jumping. Besides, it hurts to land.
-					<br/><br/><b>Orange tennis balls must be used</b>
-					<br/>Walking tennis is played with a low-compression orange tennis ball.
-					<br/>* This 'colour' isn't just the colour of the ball (most are actually still yellow). It refers to the amount of air inside the ball.
-					<br/>* Walking tennis balls have less air pressed inside of them to make them bounce less and fly slower.
-				</p>
-			</div>
-		</div>
-	</section>
-
-	<section id="supplemental" class="wrapper style1">
-		<div class="container">
-			<header class="major">
-				<h2>The Walking Tennis ethos</h2>
-				<p>Our goal is to make Walking Tennis as polite and fair as real tennis (if not more so). So let's play nice shall we?
-				</p>
-			</header>
-			<div class="row">
-				<h3>No aggressive behaviour</h2>
-				<p>
-					It might look fun on the TV, but in real-life, if the person at the other end of the court is shouting, smashing balls and racket, and being cross in general (even at themselves) it can be quite stressful.
-					<br/>* So, if you are angry, take a breath, calm down. It's just tennis after all.
-					<br/>* This includes swearing. You're probably outside; there are kids around, or just adults who might not like it. Let's keep it civil people.
-				</p>
-				<h3>Closest to the ball gets to call it</h2>
-				<p>
-					'In', 'Out', 'Long', 'Not up' - that's more than the allowed bounces. Whoever is closest is best positioned to decide.
-					<br/>* The ball can move quickly, the net can hide it from you. The person on the other side is much closer and far better to judge. Just go with their opinion in an argument. You won't lose the match on a single decision (O;
-					<br/>* There's always the option of <b>'close enough'</b>! Why stop the rally if you are enjoying it and can get it, play on! You can always claim the point at the end if you want.
-				</p>
-			</div>
-		</div>
-	</section>
-
-	<section id="complete" class="wrapper style1">
-		<div class="container">
-			<header class="major">
-				<h2>The Walking Tennis Complete Rules</h2>
-				<p>
-					Beyond the adjustments and the ethos, which mirrors the official rules of tennis, all the other rules from the International Tennis Federation, apply. 
-					<br/>These can be quite hard to decipher, however. So we have included our own summary below.
-				</p>
-			</header>
-			<div class="row">
-				<p>
-				<span class="image right fit"><img src="images/logos/coming_soon.png" alt="complete rules"/></span>
-				<b>A nice summary of the complete rules of tennis will be being written as soon as we can.</b>
-				<br/>In the meantime, the <a href="https://www.wikihow.com/Play-Tennis">wikiHow</a> page is a great place to start.
-			</p>
+			<form id='profile_data' method="post" action="#">
+				<hr>
+				<div class="row uniform">
+					<!-- locations to promote -->
+					<div class="6u 12u(3)" id="share_locations_map" style="width: 360px; height: 360px; display: none;">
+						<!-- will contain the map of shared locations -->
+					</div>
+					<div class="table-wrapper 12u 12u(3)">
+						<table id="location_share_table_template" class="alt" style="display: none;">
+							<tr id="location_share_location_template_row">
+								<td>
+									<input type="text" id="location_share_ref" name="location share reference" value="Home Location"/>
+									<a class="button fit small" id='location_add_location_button' onclick="onClickDeleteSharedLocation(this);">Delete</a>
+								</td>
+								<td>
+									<input type="text" id="location_share_name" name="location share name" value="Your name here"/>
+								</td>
+								<td>
+									<input type="email" id="location_share_email" name="location share email" value="your email here"/>
+								</td>
+								<td>
+									<input type="text" id="location_share_web" name="location share website" value="https://www.walkingtennis.org/placestoplay.html"/>
+								</td>
+								<td>
+									<input type="text" id="location_share_content" name="location share content" value="This is the place to come to play tennis. We have 4 outdoor (floodlit) and 4 indoor courts..."/>
+								</td>
+								<td>
+									<input type="text" id="location_share_lat" name="location share latitude" value="51.4933533"/>
+									<input type="text" id="location_share_lon" name="location share longitude" value="-2.6259016"/>
+									<span id="location_share_location">51.4933533, -2.6259016</span>
+									<a class="button fit small" id='location_share_location_button' onclick="onClickChooseShareLocation(this);">Choose on map</a>
+								</td>
+							</tr>
+						</table>
+						<table id="location_share_table" class="alt">
+							<thead>
+								<tr>
+									<th>Title (for you)</th>
+									<th>Name to share</th>
+									<th>Email to share</th>
+									<th>Website</th>
+									<th>Content</th>
+									<th>At Location</th>
+								</tr>
+							</thead>
+							<tbody>
+							</tbody>
+							<tfoot>
+								<tr>
+									<td><a class="button fit small" id='location_add_location_button' onclick="onClickAddSharedLocation();">Add</a></td>
+									<td colspan="2">You can share up to <b><span id="count_permitted"></span></b> locations, choose your nickname and email to share. Leave empty to not show one.</td>
+								</tr>
+							</tfoot>
+						</table>
+					</div>
+					<div class="6u 12u(3)">
+						<span>
+							<a class="button" id='edit_share_location_commit_button' onclick="saveLocationShareEdits();">Save Changes</a>
+							<a class="button" id='edit_share_location_discard_button' onclick="discardLocationShareEdits();">Discard Changes</a>
+						</span>
+					</div>
+				</div>
+			</form>
 		</div>
 	</section>
 
@@ -172,6 +178,15 @@
 			&copy; Copyright. All rights reserved. Design by Darker Waters LTD
 		</span>
 	</footer>
+
+	<!--Load the API from the specified URL
+    * The async attribute allows the browser to render the page while the API loads
+    * The key parameter will contain your own API key (which is not needed for this tutorial)
+    * The callback parameter executes the initMap() function
+    -->
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXBNipFTi6XwCrdyg_1H6Hfi-Z6ke-R8A&callback=initMap">
+    </script>
 </body>
 
 </html>

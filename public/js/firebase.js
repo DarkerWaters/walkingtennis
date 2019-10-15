@@ -127,7 +127,7 @@ function initialiseFirebaseLoginButton() {
 };
 
 function showFirebaseLoginButtons(user, userData) {
-    var coachingItems = document.getElementsByClassName("menu_coaching");
+    var coachingItems = document.getElementsByClassName("menu_extras");
     var isCoach = firebaseData.isUserCoach(userData);
     for (var i = 0; i < coachingItems.length; i++) {
         if (isCoach) {
@@ -152,7 +152,7 @@ function showFirebaseLoginButtons(user, userData) {
 
 function removeFirebaseLoginButtons() {
     // remove all the coaching options
-    var coachingItems = document.getElementsByClassName("menu_coaching");
+    var coachingItems = document.getElementsByClassName("menu_extras");
     for (var i = 0; i < coachingItems.length; i++) {
         coachingItems[i].style.display = 'none';
     }
@@ -241,7 +241,7 @@ const firebaseData = {
 
     deleteAllUserData : function(user, onSuccess, onFailure) {
         // delete all the location shared
-        this.deleteUserShareLocations(user, 
+        this.deleteUserShareLocations(user, null,
             function() {
                 // yey
             },
@@ -531,23 +531,27 @@ const firebaseData = {
         });
     },
 
-    deleteUserShareLocations : function(user, onSuccess, onFailure) {
+    deleteUserShareLocations : function(user, type, onSuccess, onFailure) {
         // get all the locations this user is sharing right now
         var dataParent = this;
-        this.getUserShareLocations(user, 
+        this.getUserShareLocations(user,
             function(querySnapshot) {
                 // now we have them all, delete them all please
                 querySnapshot.forEach(function (doc) {
-                    // for each document, delete the document
-                    dataParent.deleteUserShareLocation(doc.id, 
-                        function() {
-                            // deleted, sweet...
-                        },
-                        function(error) {
-                            // error deleting child
-                            onFailure ? onFailure(error) : console.log("Failed to delete the child location: ", error);
-                        });
+                    // for each document, delete the document (if the correct type)
+                    if (!type || type === doc.data()['type']) {
+                        // this is the correct type to delete, delete it
+                        dataParent.deleteUserShareLocation(doc.id, 
+                            function() {
+                                // deleted, sweet...
+                            },
+                            function(error) {
+                                // error deleting child
+                                onFailure ? onFailure(error) : console.log("Failed to delete the child location: ", error);
+                            });
+                        }
                 });
+                onSuccess ?  onSuccess() : null;
             },
             function(error) {
                 // this didn't work

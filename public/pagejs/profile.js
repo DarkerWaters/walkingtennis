@@ -507,6 +507,7 @@ function saveLocationShareEdits() {
                 locationData['user_name'] = tableRow.querySelector('#location_share_name_' + idData[1]).value;
                 locationData['user_email'] = tableRow.querySelector('#location_share_email_' + idData[1]).value;
                 locationData['user_uid'] = user.uid;
+                locationData['type'] = 'member';
                 // get the raw lat and lon to create the location from
                 var latitude = Number(tableRow.querySelector('#location_share_lat_' + idData[1]).value);
                 var longitude = Number(tableRow.querySelector('#location_share_lon_' + idData[1]).value);
@@ -544,7 +545,7 @@ function saveLocationShareEdits() {
         }
         else {
             // the sharing is off, delete all the locations here
-            firebaseData.deleteUserShareLocations(user, 
+            firebaseData.deleteUserShareLocations(user, 'member',
                 function() {
                     // yey - clear all the rows
                     document.getElementById('location_share_table').tBodies[0].innerHTML = "";
@@ -604,7 +605,7 @@ function onClickAddSharedLocation() {
         emailElement.id += '_' + sharedLocationIndex;
         latElement.id += '_' + sharedLocationIndex;
         lonElement.id += '_' + sharedLocationIndex;
-        lonElement.id += '_' + sharedLocationIndex;
+        locElement.id += '_' + sharedLocationIndex;
                 
         listenForChange(refElement, function() {setShareLocationFlag(true)});
         listenForChange(nameElement, function() {setShareLocationFlag(true)});
@@ -652,64 +653,68 @@ function displayShareLocationTableData() {
             function(querySnapshot) {
                 querySnapshot.forEach(function (doc) {
                     // for each document (shared location) - add a new row to the table
-                    var newRow = rowTemplate.cloneNode(true);
-                    // set the ID of this new row
-                    newRow.id = doc.id + '_' + ++sharedLocationIndex;
                     var data = doc.data();
-                    // and set the content of this element
-                    var refElement = newRow.querySelector('#location_share_ref');
-                    var nameElement = newRow.querySelector('#location_share_name');
-                    var emailElement = newRow.querySelector('#location_share_email');
-                    var latElement = newRow.querySelector('#location_share_lat');
-                    var lonElement = newRow.querySelector('#location_share_lon');
-                    var locElement = newRow.querySelector('#location_share_location');
+                    if (data['type'] === 'member') {
+                        // this is a 'member' share of location, show this
+                        var newRow = rowTemplate.cloneNode(true);
+                        // set the ID of this new row
+                        newRow.id = doc.id + '_' + ++sharedLocationIndex;
+                        
+                        // and set the content of this element
+                        var refElement = newRow.querySelector('#location_share_ref');
+                        var nameElement = newRow.querySelector('#location_share_name');
+                        var emailElement = newRow.querySelector('#location_share_email');
+                        var latElement = newRow.querySelector('#location_share_lat');
+                        var lonElement = newRow.querySelector('#location_share_lon');
+                        var locElement = newRow.querySelector('#location_share_location');
 
-                    // these id's won't be unique as we have taken them from a template and will add repeatedly
-                    // let's change them to something nice (use the sharedLocationIndex of this new row)
-                    refElement.id += '_' + sharedLocationIndex;
-                    nameElement.id += '_' + sharedLocationIndex;
-                    emailElement.id += '_' + sharedLocationIndex;
-                    latElement.id += '_' + sharedLocationIndex;
-                    lonElement.id += '_' + sharedLocationIndex;
-                    locElement.id += '_' + sharedLocationIndex;
-                    
-                    // set the data on these elements
-                    refElement.value = data['reference'];
-                    nameElement.value = data['user_name'];
-                    emailElement.value = data['user_email'];
-                    latElement.value = data['location'].latitude;
-                    lonElement.value = data['location'].longitude;
-                    locElement.innerHTML = data['location'].latitude + ", " + data['location'].longitude;
+                        // these id's won't be unique as we have taken them from a template and will add repeatedly
+                        // let's change them to something nice (use the sharedLocationIndex of this new row)
+                        refElement.id += '_' + sharedLocationIndex;
+                        nameElement.id += '_' + sharedLocationIndex;
+                        emailElement.id += '_' + sharedLocationIndex;
+                        latElement.id += '_' + sharedLocationIndex;
+                        lonElement.id += '_' + sharedLocationIndex;
+                        locElement.id += '_' + sharedLocationIndex;
+                        
+                        // set the data on these elements
+                        refElement.value = data['reference'];
+                        nameElement.value = data['user_name'];
+                        emailElement.value = data['user_email'];
+                        latElement.value = data['location'].latitude;
+                        lonElement.value = data['location'].longitude;
+                        locElement.innerHTML = data['location'].latitude + ", " + data['location'].longitude;
 
-                    // and listen to them
-                    listenForChange(refElement, function() {setShareLocationFlag(true)});
-                    listenForChange(nameElement, function() {setShareLocationFlag(true)});
-                    listenForChange(emailElement, function() {setShareLocationFlag(true)});
-                    listenForChange(latElement, function() {setShareLocationFlag(true)});
-                    listenForChange(lonElement, function() {setShareLocationFlag(true)});
+                        // and listen to them
+                        listenForChange(refElement, function() {setShareLocationFlag(true)});
+                        listenForChange(nameElement, function() {setShareLocationFlag(true)});
+                        listenForChange(emailElement, function() {setShareLocationFlag(true)});
+                        listenForChange(latElement, function() {setShareLocationFlag(true)});
+                        listenForChange(lonElement, function() {setShareLocationFlag(true)});
 
-                    // and add this to the table
-                    tableElement.tBodies[0].appendChild(newRow);
-                    /*
-                    // setup the map the first item of data
-                    if (!map) {
-                        // setup the map centred on this first found location
-                        map = new google.maps.Map(mapElement, {
-                            center: {
-                                lat: data['location'].latitude,
-                                lng: data['location'].longitude
-                            },
-                            zoom: 8
+                        // and add this to the table
+                        tableElement.tBodies[0].appendChild(newRow);
+                        /*
+                        // setup the map the first item of data
+                        if (!map) {
+                            // setup the map centred on this first found location
+                            map = new google.maps.Map(mapElement, {
+                                center: {
+                                    lat: data['location'].latitude,
+                                    lng: data['location'].longitude
+                                },
+                                zoom: 8
+                            });
+                        }
+                        // and put a pin on the map
+                        var marker = new google.maps.Marker({
+                            position: new google.maps.LatLng(data['location'].latitude, data['location'].longitude),
+                            map: map,
+                            icon: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
+                            title: data['reference']
                         });
+                        */
                     }
-                    // and put a pin on the map
-                    var marker = new google.maps.Marker({
-                        position: new google.maps.LatLng(data['location'].latitude, data['location'].longitude),
-                        map: map,
-                        icon: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
-                        title: data['reference']
-                    });
-                    */
                 });
 
             },

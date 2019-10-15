@@ -27,6 +27,7 @@ exports.createUserData = functions.auth.user().onCreate((user) => {
         email: user.email,
         isAdmin: false,
         lcount_permitted: 5,
+        lpromotions_permitted: 0,
         isRxEmailFromWkta: true,
         isRxEmailFromPlayers: true,
         isRxEmailFromPartners: true,
