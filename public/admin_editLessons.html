@@ -23,7 +23,7 @@
 	<script defer src="/__/firebase/init.js"></script>
 
 	<!-- add our page specific javascript here -->
-	<script src="pagejs/admin.js"></script>
+	<script src="pagejs/admin_editLessons.js"></script>
 
 	<!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
 	<script src="js/jquery.min.js"></script>
@@ -62,7 +62,12 @@
 				<li class='menu_coaching' style="display: none"><a href="coaching.html">Coaching</a></li>
 				<li><a href="rules.html">Rules</a></li>
 				<li><a href="placestoplay.html">Places to Play</a></li>
-				<li class='menu_admin' style="display: none"><a href="admin.html">Admin</a></li>
+				<li class='menu_admin' style="display: none">
+					<a href="">Admin</a>
+					<ul>
+						<li><a href="admin_editLessons.html">Edit Lessons</a></li>
+					</ul>
+				</li>
 			</ul>
 			<div id="firebase_login_container" class='floating_fixed' style="display: none;" >
 				<span class="image fit"><img src="images/branding/logos/full_logo_256.png" alt="" /></span>
@@ -207,7 +212,6 @@
 							</div>
 						</div>
 						<div class="row uniform">
-							<hr/>
 							<header class="major">
 								<h3>LESSON DATA SECTIONS</h2>
 							</header>

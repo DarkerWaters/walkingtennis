@@ -3,6 +3,7 @@
 
 var isChangedLocation = false;
 var permittedLocationShareCount = 0;
+var sharedLocationIndex = 0;
 var locationSharesDeleted = [];
 
 function showMembershipChange() {
@@ -32,48 +33,6 @@ function logout() {
         console.log(error);
     });
     window.location = 'index.html';
-}
-
-function setFirebaseUserLocation(user, latitude, longitude, onSuccess, onFailure) {
-    // clear the contents of the map
-    var locationsRef = firebase.firestore().collection("locations");
-    var usersUpdate = {};
-    usersUpdate['user_uid'] = user.uid;
-    usersUpdate['user_name'] = user.displayName;
-    usersUpdate['home_location'] = new firebase.firestore.GeoPoint(latitude, longitude);
-    usersUpdate['geohash'] = encodeGeohash([latitude, longitude]);
-
-    locationsRef.where("user_uid", "==", user.uid)
-    .get()
-    .then(function(querySnapshot) {
-        if (querySnapshot.empty) {
-            // this user has not yet published their location - publish now
-            locationsRef.add(usersUpdate)
-            .then(function(docRef) {
-                console.log("Document written with ID: ", docRef.id);
-            })
-            .catch(function(error) {
-                console.error("Error adding document: ", error);
-            });
-        }
-        else {
-            querySnapshot.forEach(function(doc) {
-                console.log(doc.id, " => ", doc.data());
-                doc.ref.update(usersUpdate).then(function() {
-                    console.log("Successfully updated the user's published location")
-                    onSuccess();
-                })
-                .catch(function(error) {
-                    console.log("Error updating document: ", error);
-                    onFailure();
-                });
-            });
-        }
-    })
-    .catch(function(error) {
-        console.log("Error getting documents: ", error);
-        
-    });
 }
 
 function ensureUpToDateUserData(user, data) {
@@ -136,6 +95,9 @@ function displayMembershipData(data) {
         document.getElementById('membership-coach').checked = false;
         document.getElementById('membership-coach-expiry-input').style.display = 'none';
     }
+
+    // show this map of where they are now.
+    setHomeLocationMap();
 }
 
 function displayCommunicationOptions(data) {
@@ -198,9 +160,34 @@ function populateUserData() {
         // hide the form
         document.getElementById('profile_data').style.display = 'none';
     }
-
-    getUserProfiles();
 };
+
+function setHomeLocationMap() {
+    // and the map
+    var map;
+    var mapElement = document.getElementById('home_locations_map');
+    mapElement.innerHTML = "";
+
+    var homeLat = Number(document.getElementById('home_location_lat').value);
+    var homeLon = Number(document.getElementById('home_location_lon').value);
+    var name = document.getElementById('name').value;
+
+    // setup the map the first item of data
+    var map = new google.maps.Map(mapElement, {
+        center: {
+            lat: homeLat,
+            lng: homeLon
+        },
+        zoom: 8
+    });
+    // and put a pin on the map
+    var marker = new google.maps.Marker({
+        position: new google.maps.LatLng(homeLat, homeLon),
+        map: map,
+        icon: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+        title: name
+    });
+}
 
 function deleteMembershipCountdown() {
     var countdownDiv = document.getElementById('delete_button_countdown');
@@ -286,12 +273,18 @@ function enableEdit() {
     // and show the editing buttons
     document.getElementById('edit_profile_commit_button').style.display = null;
     document.getElementById('edit_profile_discard_button').style.display = null;
+    // and the map ones
+    document.getElementById('set_home_location_button').style.display = null;
+    document.getElementById('set_home_location_button_here').style.display = null;
 }
 
 function disableEdit() {
     // hide the editing buttons
     document.getElementById('edit_profile_commit_button').style.display = 'none';
     document.getElementById('edit_profile_discard_button').style.display = 'none';
+    // and the map ones
+    document.getElementById('set_home_location_button').style.display = 'none';
+    document.getElementById('set_home_location_button_here').style.display = 'none';
     // and show the edit button
     document.getElementById('edit_profile_button').style.display = null;
     document.getElementById('edit_profile_commit_button').classList.remove('special');
@@ -384,24 +377,14 @@ function discardEdits() {
     // throw out the changes in the values to the profile
     document.getElementById('edit_profile_commit_button').style.display = 'none';
     document.getElementById('edit_profile_discard_button').style.display = 'none';
+    // and the map ones
+    document.getElementById('set_home_location_button').style.display = 'none';
+    document.getElementById('set_home_location_button_here').style.display = 'none';
     // disabled more editing
     disableEdit();
     document.getElementById('edit_profile_commit_button').classList.remove('special');
     // put the old data back
     populateUserData();
-}
-
-function getUserProfiles() {
-    var user = firebaseData.getUser();
-    if (user != null) {
-        user.providerData.forEach(function (profile) {
-            console.log("Sign-in provider: " + profile.providerId);
-            console.log("  Provider-specific UID: " + profile.uid);
-            console.log("  Name: " + profile.displayName);
-            console.log("  Email: " + profile.email);
-            console.log("  Photo URL: " + profile.photoURL);
-        });
-    }
 }
 
 function setShareLocationFlag(isChanged) {
@@ -428,13 +411,20 @@ function onClickDeleteSharedLocation(source) {
     }
     if (tableRow) {
         // have the row, is this a document that we loaded (if so then we need to remember to delete it)
-        if (tableRow.id !== 'new') {
-            locationSharesDeleted.push(tableRow.id);
+        var idData = splitId(tableRow);
+        if (idData[0] !== 'new') {
+            locationSharesDeleted.push(idData[0]);
         }
         // remove the row visually
         tableElement.tBodies[0].removeChild(tableRow);
         setShareLocationFlag(true);
     }
+}
+
+function splitId(elementToSplit) {
+    var idString = elementToSplit.id;
+    var index = idString.lastIndexOf('_');
+    return [idString.substring(0, index), idString.substring(index + 1, idString.length)];
 }
 
 function onClickEmailFromPlayers() {
@@ -510,25 +500,26 @@ function saveLocationShareEdits() {
             // save all the edits to locations we have made, get all the rows - each row is a shared location
             for (var i = 0; i < tableElement.tBodies[0].children.length; ++i) {
                 var tableRow = tableElement.tBodies[0].children[i];
+                var idData = splitId(tableRow);
                 // create this row as some data
                 var locationData = {};
-                locationData['reference'] = tableRow.querySelector('#location_share_ref').value;
-                locationData['user_name'] = tableRow.querySelector('#location_share_name').value;
-                locationData['user_email'] = tableRow.querySelector('#location_share_email').value;
+                locationData['reference'] = tableRow.querySelector('#location_share_ref_' + idData[1]).value;
+                locationData['user_name'] = tableRow.querySelector('#location_share_name_' + idData[1]).value;
+                locationData['user_email'] = tableRow.querySelector('#location_share_email_' + idData[1]).value;
                 locationData['user_uid'] = user.uid;
                 // get the raw lat and lon to create the location from
-                var latitude = Number(tableRow.querySelector('#location_share_lat').value);
-                var longitude = Number(tableRow.querySelector('#location_share_lon').value);
+                var latitude = Number(tableRow.querySelector('#location_share_lat_' + idData[1]).value);
+                var longitude = Number(tableRow.querySelector('#location_share_lon_' + idData[1]).value);
                 // create both types of location here
                 locationData['location'] = new firebase.firestore.GeoPoint(latitude, longitude);
                 locationData['geohash'] = encodeGeohash([latitude, longitude]);
                 
-                if (tableRow.id === 'new') {
+                if (idData[0] === 'new') {
                     // this is a new one, create this new document
                     firebaseData.addUserShareLocation(locationData,
                         function(newDocRef) {
-                            // this worked great, set the ID of this row
-                            tableRow.id = newDocRef.id;
+                            // this worked great, set the ID of this row to the id of the doc and the unique id for the child ids.
+                            tableRow.id = newDocRef.id + '_' + idData[1];
                             setShareLocationFlag(false);
                         },
                         function(error) {
@@ -539,7 +530,7 @@ function saveLocationShareEdits() {
                 }
                 else {
                     // this is an existing location, update its data here
-                    firebaseData.setUserShareLocation(tableRow.id, locationData, 
+                    firebaseData.setUserShareLocation(idData[0], locationData, 
                         function() {
                             // this worked
                             setShareLocationFlag(false);
@@ -565,6 +556,17 @@ function saveLocationShareEdits() {
     }
 }
 
+function onSetHomeLocationToCurrent() {
+
+    // try to auto-populate the location values
+    firebaseData.getCurrentGeoLocation(function (position) {
+        // have the location, set this into the lat and lon elements
+        document.getElementById('home_location_lat').value = position.coords.latitude;
+        document.getElementById('home_location_lon').value = position.coords.longitude;
+        document.getElementById('home_location_label').innerHTML = position.coords.latitude + ", " + position.coords.longitude;
+    });
+}
+
 function onClickAddSharedLocation() {
     // they want another location, can we?
     var tableElement = document.getElementById('location_share_table');
@@ -574,14 +576,36 @@ function onClickAddSharedLocation() {
         var rowTemplate = document.getElementById('location_share_location_template_row');
         var newRow = rowTemplate.cloneNode(true);
         // set the ID of this new row
-        newRow.id = 'new';
+        newRow.id = 'new_' + ++sharedLocationIndex;
         // listen to changes on this row
         var refElement = newRow.querySelector('#location_share_ref');
         var nameElement = newRow.querySelector('#location_share_name');
         var emailElement = newRow.querySelector('#location_share_email');
         var latElement = newRow.querySelector('#location_share_lat');
         var lonElement = newRow.querySelector('#location_share_lon');
-        
+        var locElement = newRow.querySelector('#location_share_location');
+
+        // set the name and the email to the user's name and email
+        nameElement.value = document.getElementById('name').value;
+        emailElement.value = document.getElementById('email').value;
+
+        // try to auto-populate the location values
+        firebaseData.getCurrentGeoLocation(function (position) {
+            // have the location, set this into the lat and lon elements
+            latElement.value = position.coords.latitude;
+            lonElement.value = position.coords.longitude;
+            locElement.innerHTML = position.coords.latitude + ", " + position.coords.longitude;
+        });
+
+        // these id's won't be unique as we have taken them from a template and will add repeatedly
+        // let's change them to something nice (use the sharedLocationIndex of this new row)
+        refElement.id += '_' + sharedLocationIndex;
+        nameElement.id += '_' + sharedLocationIndex;
+        emailElement.id += '_' + sharedLocationIndex;
+        latElement.id += '_' + sharedLocationIndex;
+        lonElement.id += '_' + sharedLocationIndex;
+        lonElement.id += '_' + sharedLocationIndex;
+                
         listenForChange(refElement, function() {setShareLocationFlag(true)});
         listenForChange(nameElement, function() {setShareLocationFlag(true)});
         listenForChange(emailElement, function() {setShareLocationFlag(true)});
@@ -630,7 +654,7 @@ function displayShareLocationTableData() {
                     // for each document (shared location) - add a new row to the table
                     var newRow = rowTemplate.cloneNode(true);
                     // set the ID of this new row
-                    newRow.id = doc.id;
+                    newRow.id = doc.id + '_' + ++sharedLocationIndex;
                     var data = doc.data();
                     // and set the content of this element
                     var refElement = newRow.querySelector('#location_share_ref');
@@ -638,14 +662,26 @@ function displayShareLocationTableData() {
                     var emailElement = newRow.querySelector('#location_share_email');
                     var latElement = newRow.querySelector('#location_share_lat');
                     var lonElement = newRow.querySelector('#location_share_lon');
+                    var locElement = newRow.querySelector('#location_share_location');
+
+                    // these id's won't be unique as we have taken them from a template and will add repeatedly
+                    // let's change them to something nice (use the sharedLocationIndex of this new row)
+                    refElement.id += '_' + sharedLocationIndex;
+                    nameElement.id += '_' + sharedLocationIndex;
+                    emailElement.id += '_' + sharedLocationIndex;
+                    latElement.id += '_' + sharedLocationIndex;
+                    lonElement.id += '_' + sharedLocationIndex;
+                    locElement.id += '_' + sharedLocationIndex;
                     
+                    // set the data on these elements
                     refElement.value = data['reference'];
                     nameElement.value = data['user_name'];
                     emailElement.value = data['user_email'];
-                    newRow.querySelector('#location_share_location').innerHTML = data['location'].latitude + ", " + data['location'].longitude;
                     latElement.value = data['location'].latitude;
                     lonElement.value = data['location'].longitude;
+                    locElement.innerHTML = data['location'].latitude + ", " + data['location'].longitude;
 
+                    // and listen to them
                     listenForChange(refElement, function() {setShareLocationFlag(true)});
                     listenForChange(nameElement, function() {setShareLocationFlag(true)});
                     listenForChange(emailElement, function() {setShareLocationFlag(true)});
@@ -654,6 +690,7 @@ function displayShareLocationTableData() {
 
                     // and add this to the table
                     tableElement.tBodies[0].appendChild(newRow);
+                    /*
                     // setup the map the first item of data
                     if (!map) {
                         // setup the map centred on this first found location
@@ -672,6 +709,7 @@ function displayShareLocationTableData() {
                         icon: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
                         title: data['reference']
                     });
+                    */
                 });
 
             },
