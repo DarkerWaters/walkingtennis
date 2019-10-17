@@ -54,7 +54,7 @@ function displayMembershipData(data) {
     document.getElementById('home_location_lon').value = data['location'] ? data['location'].longitude : "";
     var locationString = "";
     if (data['location']) {
-        locationString = data['location'].latitude + ", " + data['location'].longitude;
+        locationString = Number(data['location'].latitude) + ", " + Number(data['location'].longitude);
     }
     document.getElementById('home_location_label').innerHTML = locationString;
 
@@ -189,6 +189,44 @@ function setHomeLocationMap() {
     });
 }
 
+function setupMapAsPicker(map) {
+    // kind of from https://jsfiddle.net/c213z4q8/13/
+    // ** can add a box to type the location
+    //https://developers-dot-devsite-v2-prod.appspot.com/maps/documentation/javascript/examples/geocoding-simple
+    var geocoder = new google.maps.Geocoder;
+    var infoWindow = new google.maps.InfoWindow;
+
+    var pickerPin = new google.maps.Marker({ // Set the marker
+        position: map.getCenter(), // Position marker to the middle of the map
+        map: map, // assign the marker to our map variable
+        title: 'Select this position' // Marker ALT Text
+    });
+
+    google.maps.event.addListener(map, 'click', function (event) {
+        // place the pin at the clicked position and pan to it
+        pickerPin.setPosition(event.latLng);
+        map.panTo(pickerPin.getPosition());
+        // set the default on the info window, but close it
+        infoWindow.setContent(event.latLng.lat() + ',' + event.latLng.lng());
+        infoWindow.close();
+        // try to geo code this location to something nicer than the lat,lon string
+        geocoder.geocode({'location': event.latLng}, function(results, status) {
+            if (status === 'OK') {
+                if (results[0]) {
+                    //map.setZoom(11);
+                    infoWindow.setContent(results[0].formatted_address);
+                } else {
+                    console.log('no map data found');
+                }
+            } 
+            else {
+                console.log('Geocoder failed due to: ' + status);
+            }
+            infoWindow.open(map, pin);
+        });
+    });
+}
+
 function deleteMembershipCountdown() {
     var countdownDiv = document.getElementById('delete_button_countdown');
     var deleteButton = document.getElementById('delete_membership_button');
@@ -274,6 +312,7 @@ function enableEdit() {
     document.getElementById('edit_profile_commit_button').style.display = null;
     document.getElementById('edit_profile_discard_button').style.display = null;
     // and the map ones
+    document.getElementById('set_home_location_text').style.display = null;
     document.getElementById('set_home_location_button').style.display = null;
     document.getElementById('set_home_location_button_here').style.display = null;
 }
@@ -283,6 +322,7 @@ function disableEdit() {
     document.getElementById('edit_profile_commit_button').style.display = 'none';
     document.getElementById('edit_profile_discard_button').style.display = 'none';
     // and the map ones
+    document.getElementById('set_home_location_text').style.display = 'none';
     document.getElementById('set_home_location_button').style.display = 'none';
     document.getElementById('set_home_location_button_here').style.display = 'none';
     // and show the edit button
@@ -378,6 +418,7 @@ function discardEdits() {
     document.getElementById('edit_profile_commit_button').style.display = 'none';
     document.getElementById('edit_profile_discard_button').style.display = 'none';
     // and the map ones
+    document.getElementById('set_home_location_text').style.display = 'none';
     document.getElementById('set_home_location_button').style.display = 'none';
     document.getElementById('set_home_location_button_here').style.display = 'none';
     // disabled more editing
@@ -557,6 +598,35 @@ function saveLocationShareEdits() {
     }
 }
 
+function onFindLocation() {
+    // get the search text
+    var address = document.getElementById('set_home_location_text').value;
+    if (address) {
+        // go for it
+        var geocoder = new google.maps.Geocoder();
+        geocoder.geocode({
+            'address': address
+        }, function (results, status) {
+            if (status === 'OK') {
+                // set this data in the boxes
+                document.getElementById('home_location_lat').value = results[0].geometry.location.lat;
+                document.getElementById('home_location_lon').value = results[0].geometry.location.lng;
+                document.getElementById('home_location_label').textContent = address;
+                // and update the home map accordingly
+                /*
+                resultsMap.setCenter(results[0].geometry.location);
+                var marker = new google.maps.Marker({
+                    map: resultsMap,
+                    position: results[0].geometry.location
+                });*/
+            } else {
+                console.log('Geocode was not successful for the following reason: ' + status);
+            }
+        });
+  
+    }
+}
+
 function onSetHomeLocationToCurrent() {
 
     // try to auto-populate the location values
@@ -565,6 +635,23 @@ function onSetHomeLocationToCurrent() {
         document.getElementById('home_location_lat').value = position.coords.latitude;
         document.getElementById('home_location_lon').value = position.coords.longitude;
         document.getElementById('home_location_label').innerHTML = position.coords.latitude + ", " + position.coords.longitude;
+        // do the reverse lookup on this location
+        var geocoder = new google.maps.Geocoder;
+        var gLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+        // try to geo code this location to something nicer than the lat,lon string
+        geocoder.geocode({'location': gLocation}, function(results, status) {
+            if (status === 'OK') {
+                if (results[0]) {
+                    // good results, set the string to this
+                    document.getElementById('home_location_label').textContent = results[0].formatted_address;
+                } else {
+                    console.log('no map data found');
+                }
+            } 
+            else {
+                console.log('Geocoder failed due to: ' + status);
+            }
+        });
     });
 }
 

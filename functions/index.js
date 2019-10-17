@@ -35,16 +35,74 @@ exports.createUserData = functions.auth.user().onCreate((user) => {
         expiry_coach: fieldValue.serverTimestamp(),
         expiry_member: null
     });
+    return 0;
 });
 
 // when a user is deleted, they are leaving, then we want to say goodbye and also to delete all their stored user data
 exports.deleteUserData = functions.auth.user().onDelete((user) => {
     // delete all their data, to comply with GDPR
-    const docRef = db.collection('users').doc(user.uid);
-    if (docRef) {
-        docRef.delete();
-    }
+    
+    // they may have shared some locations, delete all these
+    firebase.firestore().collection('locations').where("user_uid", "==", user.uid).get()
+        .then(function(querySnapshot) {
+            // this worked, delete them all
+            querySnapshot.forEach(function (doc) {
+                // for each document, delete the document
+                firebase.firestore().collection('locations').doc(doc.id).delete()
+                    .then(function() {
+                        // this worked
+                        console.log('deleted user location data for ' + user.uid, doc);
+                    })
+                    .catch(function(error) {
+                        // this didn't work
+                        console.log('failed to delete a location document on user delete', error);
+                    });
+            });
+        })
+        .catch(function(error) {
+            // this didn't work
+            console.log('failed to get the location documents to delete them', error);
+        });
+
+    // lastly - delete their user data
+    db.collection('users').doc(user.uid).delete()
+        .then(function() {
+            // this worked
+            console.log('deleted user data', user);
+        })
+        .catch(function(error) {
+            // this didn't work
+            console.log('failed to delete a the user data', error);
+        });
+
+    
     //TODO also maybe send an email
 
     //TODO also maybe track that they left, if they were barred - remember this?
+    
+    // and return
+    return 1;
 });
+
+// when a user's data is changed, assign the proper role (admin, based on the 'isAdmin' flag in the data)
+exports.updateAdminRole = functions.firestore
+    .document('users/{userId}')
+    .onUpdate((change, context) => {
+        var data = change.after.data();
+        var result = 0;
+        if (data.isAdmin !== change.before.data().isAdmin) {
+            // there was a change to the 'isAdmin' value
+            if (data.isAdmin) {
+                // changed to admin user, update the role for this user
+                admin.auth().setCustomUserClaims(context.params.userId, {admin: true});
+                result = 1;          
+            }
+            else {
+                // change to not be admin user, remove this role from the user
+                admin.auth().setCustomUserClaims(context.params.userId, {admin: false});
+                result = 2;
+            }
+        }
+        // return the result of this (0 if done nothing)
+        return result;
+    });

@@ -1,0 +1,25 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+  	// is the request from the user requesting the
+  	function isRequestingUser(userId) {
+      return request.auth.uid == userId;
+    }
+    function isAdmin(userId) {
+      return request.auth.token.role == "admin";
+    }
+    match /images/{userId}/{imageId} {
+      // allow admins to delet the image and the user that put it there
+      allow delete: if (isRequestingUser(userId) || isAdmin(userId));
+      // Only allow uploads of a named image file that's less than 5MB
+      allow write: if (isRequestingUser(userId) || isAdmin(userId))
+                      // https://www.regextester.com/100077
+      								// image has to be called 'profile', or 'extra_n' where n >= 1 and <=5 so can only upload 5 images max
+                      && imageId.matches("(profile|extra_[1-5])+(.png|.jpg|.jpeg|.tiff|.gif)$")
+      								&& request.resource.size < (5 * 1024 * 1024)
+                      && request.resource.contentType.matches('image/.*');
+      // these are posted to show, so let all members look at them
+    	allow read: if request.auth.uid != null;
+    }
+  }
+}

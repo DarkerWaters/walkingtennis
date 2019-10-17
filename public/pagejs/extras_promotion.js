@@ -173,7 +173,7 @@ function onClickAddSharedLocation() {
         if (retrievedLocation) {
             latElement.value = retrievedLocation.coords.latitude;
             lonElement.value = retrievedLocation.coords.longitude;
-            locElement.innerHTML = retrievedLocation.coords.latitude + ", " + retrievedLocation.coords.longitude;
+            locElement.innerHTML = Number(retrievedLocation.coords.latitude) + ", " + Number(retrievedLocation.coords.longitude);
         }
 
         // these id's won't be unique as we have taken them from a template and will add repeatedly
@@ -270,7 +270,7 @@ function displayShareLocationTableData() {
                         contentElement.value = data['content'];
                         latElement.value = data['location'].latitude;
                         lonElement.value = data['location'].longitude;
-                        locElement.innerHTML = data['location'].latitude + ", " + data['location'].longitude;
+                        locElement.innerHTML = Number(data['location'].latitude) + ", " + Number(data['location'].longitude);
 
                         // and listen to them
                         listenForChange(refElement, function() {setShareLocationFlag(true)});

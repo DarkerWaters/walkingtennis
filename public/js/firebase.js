@@ -96,7 +96,7 @@ function updateFirebaseUserDisplay(user) {
             // User is signed in.
             signIn.style.display = 'none';
             signedIn.style.display = null;
-            signedIn.innerHTML  = '<a href="profile.html">' + user.displayName + '</a>';
+            signedIn.innerHTML  = '<a href="profile.html">' + sanitizeHTML(user.displayName) + '</a>';
             console.log('user ' + user.displayName + " logged in");
         } else {
             // No user is signed in.
@@ -181,6 +181,19 @@ function updateFirebaseUserItems (user) {
         removeFirebaseLoginButtons();
     }
 }
+
+/*!
+ * Sanitize and encode all HTML in a user-submitted string
+ * (c) 2018 Chris Ferdinandi, MIT License, https://gomakethings.com
+ * @param  {String} str  The user-submitted string
+ * @return {String} str  The sanitized string
+ */
+var sanitizeHTML = function (str) {
+	var temp = document.createElement('div');
+	temp.textContent = str;
+	return temp.innerHTML;
+};
+
 
 const firebaseData = {
     getUser : function () {
@@ -562,9 +575,9 @@ const firebaseData = {
     deleteUserShareLocation : function(locationRef, onSuccess, onFailure) {
         // get all the locations this user is sharing right now
         firebase.firestore().collection('locations').doc(locationRef).delete()
-        .then(function(querySnapshot) {
+        .then(function() {
             // this worked
-            onSuccess ?  onSuccess(querySnapshot) : null;
+            onSuccess ?  onSuccess() : null;
         })
         .catch(function(error) {
             // this didn't work

@@ -123,7 +123,8 @@
 						<label for="home_location_label">Home Location (we don't need your address; just a vague location is fine.)</label>
 					</div>
 					<div class="6u 12u(3)">
-						<a class="button" id='set_home_location_button' onclick="onSetHomeLocation();" style="display: none;">Choose on Map</a>
+						<input type="text" id="set_home_location_text" name="home location search" style="display: none;"/>
+						<a class="button" id='set_home_location_button' onclick="onFindLocation();" style="display: none;">Find...</a>
 						<a class="button" id='set_home_location_button_here' onclick="onSetHomeLocationToCurrent();" style="display: none;">Current Position</a>
 						<div id="home_locations_map" style="width: 360px; height: 360px;">
 							<!-- will contain the map of shared locations -->
