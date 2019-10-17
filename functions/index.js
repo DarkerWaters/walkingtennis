@@ -19,12 +19,12 @@ const db = admin.firestore();
 // when a user is created / first sign on, then we want to create the user entry to track their subscriptions etc
 exports.createUserData = functions.auth.user().onCreate((user) => {
     // create the skeleton of user data
-    const docRef = db.collection('users').doc(user.uid);
-    
-    docRef.set({
+    var newUserData = {
         // setup the blank user data here
         name: user.displayName,
+        name_lc: user.displayName.toLowerCase(),
         email: user.email,
+        email_lc: user.email.toLowerCase(),
         isAdmin: false,
         lcount_permitted: 5,
         lpromotions_permitted: 0,
@@ -34,7 +34,17 @@ exports.createUserData = functions.auth.user().onCreate((user) => {
         joined_date: fieldValue.serverTimestamp(),
         expiry_coach: fieldValue.serverTimestamp(),
         expiry_member: null
-    });
+    };
+    db.collection('users').doc(user.uid).set(newUserData, {merge: true})
+        .then(function() {
+            // this worked
+            console.log('added user data', user);
+            return 0;
+        })
+        .catch(function(error) {
+            // failed
+            console.log("failed to create the user data", error);
+        });
     return 0;
 });
 
@@ -52,12 +62,14 @@ exports.deleteUserData = functions.auth.user().onDelete((user) => {
                     .then(function() {
                         // this worked
                         console.log('deleted user location data for ' + user.uid, doc);
+                        return 0;
                     })
                     .catch(function(error) {
                         // this didn't work
                         console.log('failed to delete a location document on user delete', error);
                     });
             });
+            return 0;
         })
         .catch(function(error) {
             // this didn't work
@@ -69,6 +81,7 @@ exports.deleteUserData = functions.auth.user().onDelete((user) => {
         .then(function() {
             // this worked
             console.log('deleted user data', user);
+            return 0;
         })
         .catch(function(error) {
             // this didn't work

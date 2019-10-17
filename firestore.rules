@@ -18,11 +18,11 @@ service cloud.firestore {
     }
     // helper to check if they are updating something important
     function notUpdating(field) {
-      return !(field in request.resource.data) || resource.data[field] == request.resource.data[field]
+      return !(field in request.resource.data) || (resource.data[field] && resource.data[field] == request.resource.data[field])
     }
     // there is no invalid change if not changing the private things here
     function noInvalidDataChange() {
-    	return notUpdating('isAdmin') &&
+    	return !('isAdmin' in request.resource.data) || false == request.resource.data['isAdmin'] &&
             notUpdating('joined_date') &&
             notUpdating('lcount_permitted') &&
             notUpdating('lpromotions_permitted') &&
@@ -36,7 +36,7 @@ service cloud.firestore {
     }
     // Allow public read access to user data, but only content owners can write
     match /users/{userId}/{documents=**} {
-	    allow read, delete: if isRequestingUser(userId);
+	    allow read, delete: if isRequestingUser(userId) || isAdmin();
       // Disallow the creation of users with active subscriptions / admin rights
       allow update : if (noInvalidDataChange() && isRequestingUser(userId)) || isAdmin();
       allow create: if noInvalidDataChange() && isRequestingUser(userId);
