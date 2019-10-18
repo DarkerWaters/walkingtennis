@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="description" content="" />
+	<meta name="keywords" content="" />
+	<title>Walking Tennis Profile</title>
+
+	<!-- update the version number as needed -->
+	<script defer src="/__/firebase/7.0.0/firebase-app.js"></script>
+	<!-- include only the Firebase features as you need -->
+	<script defer src="/__/firebase/7.0.0/firebase-auth.js"></script>
+	<script defer src="/__/firebase/7.0.0/firebase-database.js"></script>
+	<script defer src="/__/firebase/7.0.0/firebase-messaging.js"></script>
+	<script defer src="/__/firebase/7.0.0/firebase-storage.js"></script>
+	<script defer src="/__/firebase/7.0.0/firebase-firestore.js"></script>
+	<!-- add the UI for logging in-->
+	<script src="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.js"></script>
+	<link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.css" />
+	<!-- initialize the SDK after all desired features are loaded -->
+	<script defer src="/__/firebase/init.js"></script>
+
+	<!-- add our page specific javascript here -->
+	<script src="pagejs/admin_users.js"></script>
+
+	<!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
+	<script src="js/jquery.min.js"></script>
+	<script src="js/jquery.dropotron.min.js"></script>
+	<script src="js/jquery.scrollgress.min.js"></script>
+	<script src="js/jquery.scrolly.min.js"></script>
+	<script src="js/jquery.slidertron.min.js"></script>
+	<script src="js/skel.min.js"></script>
+	<script src="js/skel-layers.min.js"></script>
+	<script src="js/firebase.js"></script>
+	<script src="js/init.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/walking-tennis.css" />
+
+	<noscript>
+		<link rel="stylesheet" href="css/skel.css" />
+		<link rel="stylesheet" href="css/style.css" />
+		<link rel="stylesheet" href="css/style-xlarge.css" />
+	</noscript>
+	<!--[if lte IE 9]><link rel="stylesheet" href="css/ie/v9.css" /><![endif]-->
+	<!--[if lte IE 8]><link rel="stylesheet" href="css/ie/v8.css" /><![endif]-->
+</head>
+
+<body class="landing">
+	<!-- Header -->
+	<header id="header" class="alt skel-layers-fixed">
+		<h1><a href="index.html">TODO: TITLE</a></h1>
+		<nav id="nav">
+			<ul>
+				<li>
+					<div id="firebaseui-auth-container"></div>
+					<a href="#" id="firebaseSignIn" class="button special">Log In...</a>
+					<p href="#" id="firebaseSignedIn" style="display: none">Logged In...</p>
+				</li>
+				<li><a href="index.html">Home</a></li>
+				<li class='menu_admin' style="display: none">
+					<a href="">Admin</a>
+					<ul>
+						<li><a href="admin_users.html">Manage Users</a></li>
+					</ul>
+				</li>
+				<li>
+					<a href="" class="icon fa-angle-down">Layouts</a>
+					<ul>
+						<li><a href="left-sidebar.html">Left Sidebar</a></li>
+						<li><a href="right-sidebar.html">Right Sidebar</a></li>
+						<li><a href="no-sidebar.html">No Sidebar</a></li>
+						<li>
+							<a href="">Submenu</a>
+							<ul>
+								<li><a href="#">Option 1</a></li>
+								<li><a href="#">Option 2</a></li>
+								<li><a href="#">Option 3</a></li>
+								<li><a href="#">Option 4</a></li>
+							</ul>
+						</li>
+					</ul>
+				</li>
+				<li><a href="elements.html">Elements</a></li>
+			</ul>
+			<div id="firebase_login_container" class='floating_fixed' style="display: none;" >
+				<span class="image fit"><img src="images/logo.png" alt="" /></span>
+			</div>
+		</nav>
+	</header>
+
+	<!-- Main -->
+	<section id="main" class="wrapper style1">
+		<div class="container">
+			<header class="major">
+				<h4>Administer Users</h4>
+				<p>A remote control over your users, for more functionality go to the <a href="https://console.firebase.google.com/">firebase</a> console...</p>
+			</header>
+			<form id='data_form' method="post" action="onPostData()">
+				<header class="major">
+					<h3>User Search</h3>
+				</header>
+				<div class="row uniform">
+					<div class="4u 12u(3)">
+						<input type="text" name="name" id="name" value="" placeholder="Name" />
+						<label for="name">Name</label>
+						<a class="button special" id='search_name_button' onclick="searchUserNames();">Find...</a>
+					</div>
+					<div class="4u 12u(3)">
+						<input type="email" name="email" id="email" value="" placeholder="Email" />
+						<label for="email">Email</label>
+						<a class="button special" id='search_email_button' onclick="searchUserEmails();">Find...</a>
+					</div>
+					<div class="4u 12u(3)">
+						<a class="button special" id='search_admin_button' onclick="getAllAdministrator();">Find all Administrators</a>
+					</div>
+				</div>
+				<hr>
+				<div style="display: none;">
+					<!-- hidden template area -->
+					<div id="user_template" class="row uniform" >
+						<div class="3u 12u(3)">
+							<h4>Firebase UID</h4>
+							<input type="text" id="user_uid" readonly />
+						</div>
+						<div class="3u 12u(3)">
+							<h4>User Name</h4>
+							<input type="text" id="user_name" readonly />
+						</div>
+						<div class="3u 12u(3)">
+							<h4>User Email</h4>
+							<input type="text" id="user_email" readonly />
+						</div>
+						<div class="3u 12u(3)">
+							<h4>Permissions</h4>
+							<input type="checkbox" id="user_isAdmin" />
+							<label id="user_isAdmin_label" for="user_isAdmin">Is Administrator</label>
+						</div>
+						<span id="user_message"></span>
+					</div>
+					<hr>
+				</div>
+				<div id="found_user_container" class="row uniform">
+					<!-- this area will be totally cleared each time a search for user is performed-->
+				</div>
+			</form>
+		</div>
+	</section>
+
+	<!-- Footer -->
+	<footer id="footer">
+		<ul class="icons">
+			<li><a href="https://twitter.com/https://twitter.com/TODOTwitter" class="icon fa-twitter"><span class="label">Twitter</span></a>
+			</li>
+			<li><a href="https://www.facebook.com/TODOFacebook" class="icon fa-facebook"><span
+						class="label">Facebook</span></a></li>
+			<li><a href="https://www.instagram.com/TODOInstagram" class="icon fa-instagram"><span
+						class="label">Instagram</span></a></li>
+			<li><a href="https://www.youtube.com/channel/TODOYouTube" class="icon fa-youtube"><span
+						class="label">YouTube</span></a></li>
+			<li><a href="admincontact.html" class="icon fa-envelope"><span class="label">Envelope</span></a></li>
+		</ul>
+		<ul class="menu">
+			<li><a href="adminfaq.html">FAQ</a></li>
+			<li><a href="adminterms.html">Terms of Use</a></li>
+			<li><a href="adminprivacy.html">Privacy</a></li>
+			<li><a href="admincontact.html">Contact</a></li>
+		</ul>
+		<span class="copyright">
+			&copy; Copyright. All rights reserved. Design by <a href="https://www.darkerwaters.co.uk">Darker Waters LTD</a>
+		</span>
+	</footer>
+</body>
+
+</html>
