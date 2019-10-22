@@ -326,6 +326,7 @@ function resizeDocumentContent(source, idsToResize, targetSizeId, alternateButto
                 // no alternative button and the element is already big, shrink it back
                 elementToResize.removeAttribute('width');
                 elementToResize.removeAttribute('height');
+                elementToResize.parentElement.style.height = 'auto';
                 // was it a fill container and wants to be again?
                 if (elementToResize.classList.contains('iframe-fillContainer-removed')) {
                     // remove it
@@ -334,10 +335,11 @@ function resizeDocumentContent(source, idsToResize, targetSizeId, alternateButto
                     elementToResize.classList.add('iframe-fillContainer');
                 }
             }
-            else {
+            else if (heightFactor && !isNaN(heightFactor)) {
                 // we can change the size now
                 elementToResize.width = width;
                 elementToResize.height = heightFactor * width;
+                elementToResize.parentElement.style.height = '' + (heightFactor * width) + 'px';
                 // but if it is an 'iframe-fillContainer' - the style of this will make it 100% all the time, remove this then!
                 if (elementToResize.classList.contains('iframe-fillContainer')) {
                     // remove it
@@ -376,6 +378,7 @@ function resizeDocumentContentReset(source, idsToResize, targetSizeId, alternate
             // reset the size
             elementToResize.removeAttribute('width');
             elementToResize.removeAttribute('height');
+            elementToResize.parentElement.style.height = 'auto';
             // was it a fill container and wants to be again?
             if (elementToResize.classList.contains('iframe-fillContainer-removed')) {
                 // remove it
