@@ -316,7 +316,7 @@ const firebaseData = {
             image: "add a URL to an image here, have to have either this, a video, or both!",
             video: "add a !!!&lt;embed&gt;!!! URL to a YouTube video here, have to have either this, an image, or both!"
         });
-    }
+    },
 
     autoCompleteData : function(docData) {
         // complete the data on this object, first remove spaces and lower case the name for searching

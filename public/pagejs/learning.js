@@ -115,6 +115,41 @@ function setLessonProgress(progress) {
     }
 }
 
+function updateLessonProgressButtons(userData) {
+    var keyNames = Object.keys(userData);
+    for (var i = 0; i < keyNames.length; ++i) {
+        // for every member in the user data, find the progresses recorded
+        if (keyNames[i].startsWith('progress_')) {
+            // this is the progress of something, get this button
+            var progressId = keyNames[i].split('_')[1];
+            var lessonButton = document.getElementById(progressId);
+            if (lessonButton) {
+                // clear any children (progress and line breaks) from the button
+                var child = lessonButton.lastElementChild;  
+                while (child) { 
+                    lessonButton.removeChild(child); 
+                    child = lessonButton.lastElementChild; 
+                }
+                // get the progress
+                var progressNumber = userData[keyNames[i]];
+                progressNumber = Number(progressNumber);
+                if (!isNaN(progressNumber)) {
+                    // create a break
+                    lessonButton.appendChild(document.createElement('br'));
+                    // and the progress controls
+                    var progressCtrl = document.createElement('progress');
+                    progressCtrl.max = 1;
+                    progressCtrl.value = progressNumber;
+                    // and add to the button
+                    lessonButton.appendChild(progressCtrl);
+                    lessonButton.classList.add('progress_button');
+                    //+=  '<br><progress style="button_progress" max="1" value="0.85"></progress>';
+                }
+            }
+        }
+    }
+}
+
 function showLessonProgress(progress) {
     var user = firebaseData.getUser();
     if (!user) {
@@ -130,6 +165,8 @@ function showLessonProgress(progress) {
             function(data) {
                 // we have the user data here, set the data correctly
                 if (firebaseData.isUserMember(data)) {
+                    // update all the progress on the buttons we are showing
+                    updateLessonProgressButtons(data);
                     // we are a member, show the progress for this user then
                     document.getElementById('not_logged_in').style.display = 'none';
                     document.getElementById('not_a_member').style.display = 'none';
