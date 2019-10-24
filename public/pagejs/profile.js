@@ -39,15 +39,11 @@ function ensureUpToDateUserData(user, data) {
     // to be sure we have an up-to-date picture of our user, let's update their name and email here if wrong...
     if (data['name'] !== user.displayName || data['email' !== user.email]) {
         // update our data held about them here
-        const docRef = firebase.firestore().collection('users').doc(user.uid)
-        docRef.update({
-            name: user.displayName,
-            name_lc: user.displayName.toLowerCase(),
-            email: user.email,
-            email_lc: user.email.toLowerCase()
-        }).catch(function(error) {
-            console.log("Error updating user information held against them", error);
-        });
+        var userData = firebaseData.defaultUser(user.displayName, user.email);
+        firebase.firestore().collection(firebaseData.collectionUsers).doc(user.uid).update(userData)
+            .catch(function(error) {
+                console.log("Error updating user information held against them", error);
+            });
     }
 }
 
@@ -544,19 +540,19 @@ function saveLocationShareEdits() {
             for (var i = 0; i < tableElement.tBodies[0].children.length; ++i) {
                 var tableRow = tableElement.tBodies[0].children[i];
                 var idData = splitId(tableRow);
-                // create this row as some data
-                var locationData = {};
-                locationData['reference'] = tableRow.querySelector('#location_share_ref_' + idData[1]).value;
-                locationData['user_name'] = tableRow.querySelector('#location_share_name_' + idData[1]).value;
-                locationData['user_email'] = tableRow.querySelector('#location_share_email_' + idData[1]).value;
-                locationData['user_uid'] = user.uid;
-                locationData['type'] = 'member';
                 // get the raw lat and lon to create the location from
                 var latitude = Number(tableRow.querySelector('#location_share_lat_' + idData[1]).value);
                 var longitude = Number(tableRow.querySelector('#location_share_lon_' + idData[1]).value);
-                // create both types of location here
-                locationData['location'] = new firebase.firestore.GeoPoint(latitude, longitude);
-                locationData['geohash'] = encodeGeohash([latitude, longitude]);
+                // create this row as some data
+                var locationData = firebaseData.defaultLocation(
+                    tableRow.querySelector('#location_share_name_' + idData[1]).value,
+                    tableRow.querySelector('#location_share_email_' + idData[1]).value,
+                    user.uid,
+                    tableRow.querySelector('#location_share_ref_' + idData[1]).value,
+                    firebaseData.locationTypeMember,
+                    new firebase.firestore.GeoPoint(latitude, longitude),
+                    encodeGeohash([latitude, longitude])
+                );
                 
                 if (idData[0] === 'new') {
                     // this is a new one, create this new document
@@ -588,7 +584,7 @@ function saveLocationShareEdits() {
         }
         else {
             // the sharing is off, delete all the locations here
-            firebaseData.deleteUserShareLocations(user, 'member',
+            firebaseData.deleteUserShareLocations(user, firebaseData.locationTypeMember,
                 function() {
                     // yey - clear all the rows
                     document.getElementById('location_share_table').tBodies[0].innerHTML = "";
@@ -743,8 +739,8 @@ function displayShareLocationTableData() {
                 querySnapshot.forEach(function (doc) {
                     // for each document (shared location) - add a new row to the table
                     var data = doc.data();
-                    if (data['type'] === 'member') {
-                        // this is a 'member' share of location, show this
+                    if (data['type'] === firebaseData.locationTypeMember) {
+                        // this is a member's share of location, show this
                         var newRow = rowTemplate.cloneNode(true);
                         // set the ID of this new row
                         newRow.id = doc.id + '_' + ++sharedLocationIndex;

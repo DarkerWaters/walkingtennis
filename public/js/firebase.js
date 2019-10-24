@@ -196,6 +196,166 @@ var sanitizeHTML = function (str) {
 
 
 const firebaseData = {
+
+    collectionUsers : 'users',
+    collectionLessons : 'lessons',
+    collectionLocations : 'locations',
+    collectionLessonPlans : 'lesson_plans',
+    collectionCoachingLessons : 'coaching_lessons',
+
+    locationTypeMember : 'member',
+
+    lcRef : function (str) {
+        if (!str) {
+            return str;
+        }
+        else {
+            // remove all spaces and make it lowercase
+            str = str.toLowerCase().replace(/\s/g,'');
+            // and get rid of anything too weird
+            str = str.replace(/\W/g, '');
+            if (str.length > 1 && str.slice(-1) === 's') {
+                // remove any trailing 's' characters
+                str = str.slice(0, -1);
+            }
+            return str;
+        }
+    },
+
+    lcWords : function(str) {
+        if (!str) {
+            return [];
+        }
+        else {
+            // make the words split from the string
+            var words = [];
+            var toProcess = str.toLowerCase().split(/\s/);
+            for (var i = 0; i < toProcess.length; ++i) {
+                // for each word from the string split, add it to the array
+                var word = toProcess[i];
+                words.push(firebaseData.lcRef(word));
+                // and combine it with all following it
+                for (var j = i + 1; j < toProcess.length; ++j) {
+                    word += toProcess[j];
+                    words.push(firebaseData.lcRef(word));
+                }
+            }
+            // return all the words combined into a nice array of options to search for
+            return words;
+        }
+    },
+
+    newUser : function(user) {
+        return firebaseData.autoCompleteData({
+            // setup the blank user data here
+            name: user.displayName,
+            email: user.email,
+            isAdmin: false,
+            lcount_permitted: 5,
+            lpromotions_permitted: 0,
+            isRxEmailFromWkta: true,
+            isRxEmailFromPlayers: true,
+            isRxEmailFromPartners: true,
+            joined_date: fieldValue.serverTimestamp(),
+            expiry_coach: fieldValue.serverTimestamp(),
+            expiry_member: null
+        });
+    },
+
+    defaultUser : function(userName, userEmail) {
+        return firebaseData.autoCompleteData({
+            name : userName,
+            email : userEmail,
+            // don't create empty data - to prevent over-writing any existing data on the update
+            /*
+            expiry_coach: fieldValue.serverTimestamp(),
+            expiry_member : null,
+            geohash : null,
+            isAdmin : false,
+            isRxEmailFromPartners : true,
+            isRxEmailFromPlayers : true,
+            isShareLocations : true,
+            joined_date: fieldValue.serverTimestamp(),
+            last_coaching_lesson : null,
+            last_members_lesson : null,
+            lcount_permitted : 5,
+            location : null,
+            lpromotions_permitted : 0,
+            */
+        });
+    },
+
+    defaultLocation : function(name, email, uid, referenceName, typeStr, locationData, geoHash) {
+        return firebaseData.autoCompleteData({
+            location : locationData,
+            geohash : geoHash,
+            reference : referenceName,
+            type : typeStr,
+            user_email : email,
+            user_name : name,
+            user_uid : uid,
+            // don't create empty data - to prevent over-writing any existing data on the update
+        });
+    },
+
+    defaultLesson : function() {
+        return firebaseData.autoCompleteData({
+            name: "New Lesson",
+            subtitle: "A newly added lesson just now",
+            priority: 0,
+            progress_options: ""
+        });
+    },
+
+    defaultLessonSection : function() {
+        return firebaseData.autoCompleteData({
+            title: "New Section",
+            priority: 0,
+            subtitle: "A newly added section just now",
+            text: "add your text content here",
+            image: "add a URL to an image here, have to have either this, a video, or both!",
+            video: "add a !!!&lt;embed&gt;!!! URL to a YouTube video here, have to have either this, an image, or both!"
+        });
+    }
+
+    autoCompleteData : function(docData) {
+        // complete the data on this object, first remove spaces and lower case the name for searching
+        var wordsArray = []
+        if (docData.name) {
+            docData.name_lc = firebaseData.lcRef(docData.name);
+            // this can be the start of the words
+            wordsArray = [docData.name_lc];
+        }
+        if (docData.email) {
+            docData.email_lc = firebaseData.lcRef(docData.email);
+            // we can include this in our words too
+            wordsArray.push(docData.email_lc);
+        }
+        if (docData.reference) {
+            docData.reference_lc = firebaseData.lcRef(docData.reference);
+            // we can include this in our words too
+            wordsArray.push(docData.reference_lc);
+        }
+        // now concatenate all the entries into an array of words to use
+        if (docData.name) {
+            wordsArray = wordsArray.concat(firebaseData.lcWords(docData.name));
+        }
+        if (docData.user_email) {
+            wordsArray = wordsArray.concat(firebaseData.lcWords(docData.user_email));
+        }
+        if (docData.user_name) {
+            wordsArray = wordsArray.concat(firebaseData.lcWords(docData.user_name));
+        }
+        // set this data
+        docData.words = wordsArray;
+        // add the last update performed
+        var currentUser = this.getUser();
+        docData.last_update = new Date();
+        docData.last_updated_by = currentUser ? currentUser.uid : 'unknown';
+        // and return the data
+        return docData;
+    },
+
     getUser : function () {
         return firebase.auth().currentUser;
     },
@@ -207,7 +367,7 @@ const firebaseData = {
             var userUid = user.uid;
             var fData = this;
             // get the data for the user
-            firebase.firestore().collection('users').doc(userUid).get()
+            firebase.firestore().collection(this.collectionUsers).doc(userUid).get()
             .then(function(doc) {
                 if (doc && doc.exists) {
                     // do stuff with the data
@@ -231,23 +391,7 @@ const firebaseData = {
     },
 
     createDefaultUserData : function (user) {
-        var newUserData = {
-            // setup the blank user data here
-            name: user.displayName,
-            name_lc: user.displayName.toLowerCase(),
-            email: user.email,
-            email_lc: user.email.toLowerCase(),
-            isAdmin: false,
-            lcount_permitted: 5,
-            lpromotions_permitted: 0,
-            isRxEmailFromWkta: true,
-            isRxEmailFromPlayers: true,
-            isRxEmailFromPartners: true,
-            joined_date: fieldValue.serverTimestamp(),
-            expiry_coach: fieldValue.serverTimestamp(),
-            expiry_member: null
-        };
-        firebase.firestore().collection('users').doc(user.uid).set(newUserData, {merge: true})
+        firebase.firestore().collection(this.collectionUsers).doc(user.uid).set(this.newUser(user), {merge: true})
             .then(function() {
                 // this worked
                 console.log('added user data', user);
@@ -270,7 +414,7 @@ const firebaseData = {
     },
 
     updateUserData : function (user, userData, onSuccess, onFailure) {
-        firebase.firestore().collection("users").doc(user.uid).update(userData)
+        firebase.firestore().collection(this.collectionUsers).doc(user.uid).update(userData)
         .then(function() {
             // this worked
             onSuccess ? onSuccess() : null;
@@ -293,7 +437,7 @@ const firebaseData = {
             });
         
         // and delete the user document we have stored
-        firebase.firestore().collection("users").doc(user.uid).delete().then(function() {
+        firebase.firestore().collection(this.collectionUsers).doc(user.uid).delete().then(function() {
             logout();
         }).catch(function(error) {
             alert("Sorry about this, but there was some error in removing all your data, please contact us to confirm all you data was in-fact removed. Please reference this weird set of letters to help us find it: '" + user.uid + "'." );
@@ -357,20 +501,15 @@ const firebaseData = {
     },*/
 
     addLessonToCollection : function(lessonCollection, onSuccess, onFailure) {
-        firebase.firestore().collection(lessonCollection).add({
-            name: "New Lesson",
-            subtitle: "A newly added lesson just now",
-            priority: 0,
-            progress_options: ""
-        })
-        .then(function(newDocRef) {
-            // this worked
-            onSuccess ?  onSuccess(newDocRef) : null;
-        })
-        .catch(function(error) {
-            // this didn't work
-            onFailure ? onFailure(error) : console.log("Failed to add the document: ", error);
-        });
+        firebase.firestore().collection(lessonCollection).add(this.defaultLesson())
+            .then(function(newDocRef) {
+                // this worked
+                onSuccess ?  onSuccess(newDocRef) : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to add the document: ", error);
+            });
     },
 
     deleteLesson : function(lessonCollection, lessonRef, onSuccess, onFailure) {
@@ -391,14 +530,14 @@ const firebaseData = {
                 });
                 // now we have deleted all the sections, we can delete the parent lesson
                 firebase.firestore().collection(lessonCollection).doc(lessonRef).delete()
-                .then(function() {
-                    // this worked
-                    onSuccess ?  onSuccess() : null;
-                })
-                .catch(function(error) {
-                    // this didn't work
-                    onFailure ? onFailure(error) : console.log("Failed to delete the document: ", error);
-                });
+                    .then(function() {
+                        // this worked
+                        onSuccess ?  onSuccess() : null;
+                    })
+                    .catch(function(error) {
+                        // this didn't work
+                        onFailure ? onFailure(error) : console.log("Failed to delete the document: ", error);
+                    });
             },
             function(error) {
                 onFailure ? onFailure(error) : console.log("Failed to delete the document: ", error);    
@@ -407,45 +546,38 @@ const firebaseData = {
 
     getLesson : function(lessonCollection, lesson, onSuccess, onFailure) {
         firebase.firestore().collection(lessonCollection).doc(lesson).get()
-        .then(function(doc) {
-            // this worked
-            onSuccess ?  onSuccess(doc) : null;
-        })
-        .catch(function(error) {
-            // this didn't work
-            onFailure ? onFailure(error) : console.log("Failed to get the document: ", error);
-        });
+            .then(function(doc) {
+                // this worked
+                onSuccess ?  onSuccess(doc) : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to get the document: ", error);
+            });
     },
 
     setLesson : function(lessonCollection, lessonRef, lessonData, onSuccess, onFailure) {
         firebase.firestore().collection(lessonCollection).doc(lessonRef).set(lessonData)
-        .then(function() {
-            // this worked
-            onSuccess ?  onSuccess() : null;
-        })
-        .catch(function(error) {
-            // this didn't work
-            onFailure ? onFailure(error) : console.log("Failed to set the document data: ", error);
-        });
+            .then(function() {
+                // this worked
+                onSuccess ?  onSuccess() : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to set the document data: ", error);
+            });
     },
 
     addLessonSection : function(lessonCollection, lessonRef, onSuccess, onFailure) {
-        firebase.firestore().collection(lessonCollection).doc(lessonRef).collection('contents').add({
-            title: "New Section",
-            priority: 0,
-            subtitle: "A newly added section just now",
-            text: "add your text content here",
-            image: "add a URL to an image here, have to have either this, a video, or both!",
-            video: "add a !!!&lt;embed&gt;!!! URL to a YouTube video here, have to have either this, an image, or both!"
-        })
-        .then(function(newDocRef) {
-            // this worked
-            onSuccess ?  onSuccess(newDocRef) : null;
-        })
-        .catch(function(error) {
-            // this didn't work
-            onFailure ? onFailure(error) : console.log("Failed to add the document: ", error);
-        });
+        firebase.firestore().collection(lessonCollection).doc(lessonRef).collection('contents').add(this.defaultLessonSection())
+            .then(function(newDocRef) {
+                // this worked
+                onSuccess ?  onSuccess(newDocRef) : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to add the document: ", error);
+            });
     },
     
     getLessonSections : function(isIncludeZeroPriority, lessonCollection, lessonRef, onSuccess, onFailure) {
@@ -453,66 +585,66 @@ const firebaseData = {
         if (!isIncludeZeroPriority) {
             // just get ones that are not zero priority - standard as this means 'hidden'
             firebase.firestore().collection(collectionRef).where("priority", ">", 0).orderBy("priority").get()
-            .then(function(querySnapshot) {
-                // this worked
-                onSuccess ?  onSuccess(querySnapshot) : null;
-            })
-            .catch(function(error) {
-                // this didn't work
-                onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
-            });
+                .then(function(querySnapshot) {
+                    // this worked
+                    onSuccess ?  onSuccess(querySnapshot) : null;
+                })
+                .catch(function(error) {
+                    // this didn't work
+                    onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
+                });
         }
         else {
             // get them all
             firebase.firestore().collection(collectionRef).orderBy("priority").get()
-            .then(function(querySnapshot) {
-                // this worked
-                onSuccess ?  onSuccess(querySnapshot) : null;
-            })
-            .catch(function(error) {
-                // this didn't work
-                onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
-            });
+                .then(function(querySnapshot) {
+                    // this worked
+                    onSuccess ?  onSuccess(querySnapshot) : null;
+                })
+                .catch(function(error) {
+                    // this didn't work
+                    onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
+                });
         }
     },
 
     setLessonSection : function(lessonCollection, lessonRef, sectionRef, sectionData, onSuccess, onFailure) {
         var collectionRef = lessonCollection + '/' + lessonRef + '/contents'
         firebase.firestore().collection(collectionRef).doc(sectionRef).set(sectionData)
-        .then(function() {
-            // this worked
-            onSuccess ?  onSuccess() : null;
-        })
-        .catch(function(error) {
-            // this didn't work
-            onFailure ? onFailure(error) : console.log("Failed to set the document data: ", error);
-        });
+            .then(function() {
+                // this worked
+                onSuccess ?  onSuccess() : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to set the document data: ", error);
+            });
     },
 
     deleteLessonSection : function(lessonCollection, lessonRef, sectionRef, onSuccess, onFailure) {
         var collectionRef = lessonCollection + '/' + lessonRef + '/contents'
         firebase.firestore().collection(collectionRef).doc(sectionRef).delete()
-        .then(function() {
-            // this worked
-            onSuccess ?  onSuccess() : null;
-        })
-        .catch(function(error) {
-            // this didn't work
-            onFailure ? onFailure(error) : console.log("Failed to delete the document: ", error);
-        });
+            .then(function() {
+                // this worked
+                onSuccess ?  onSuccess() : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to delete the document: ", error);
+            });
     },
 
     getLessonPlan : function(lessonPlan, onSuccess, onFailure) {
         // get the data for the user - get the lesson plan
-        firebase.firestore().collection('lesson_plans').doc(lessonPlan).get()
-        .then(function(doc) {
-            // this worked
-            onSuccess ?  onSuccess(doc) : null;
-        })
-        .catch(function(error) {
-            // this didn't work
-            onFailure ? onFailure(error) : console.log("Failed to get the document: ", error);
-        });
+        firebase.firestore().collection(this.collectionLessonPlans).doc(lessonPlan).get()
+            .then(function(doc) {
+                // this worked
+                onSuccess ?  onSuccess(doc) : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to get the document: ", error);
+            });
     },
 
     getCollectionLessons : function(isIncludeZeroPriority, lessonCollection, onSuccess, onFailure) {
@@ -520,26 +652,26 @@ const firebaseData = {
         if (!isIncludeZeroPriority) {
             // just get ones that are not zero priority - standard as this means 'hidden'
             firebase.firestore().collection(lessonCollection).where("priority", ">", 0).orderBy("priority").get()
-            .then(function(querySnapshot) {
-                // this worked
-                onSuccess ?  onSuccess(querySnapshot) : null;
-            })
-            .catch(function(error) {
-                // this didn't work
-                onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
-            });
+                .then(function(querySnapshot) {
+                    // this worked
+                    onSuccess ?  onSuccess(querySnapshot) : null;
+                })
+                .catch(function(error) {
+                    // this didn't work
+                    onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
+                });
         }
         else {
             // get them all
             firebase.firestore().collection(lessonCollection).orderBy("priority").get()
-            .then(function(querySnapshot) {
-                // this worked
-                onSuccess ?  onSuccess(querySnapshot) : null;
-            })
-            .catch(function(error) {
-                // this didn't work
-                onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
-            });
+                .then(function(querySnapshot) {
+                    // this worked
+                    onSuccess ?  onSuccess(querySnapshot) : null;
+                })
+                .catch(function(error) {
+                    // this didn't work
+                    onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
+                });
         }
     },
 
@@ -550,27 +682,27 @@ const firebaseData = {
         lessonData['lessons_names'] = lessonsNames;
         // send this to firestore to replace the plan
         firebase.firestore().collection('lesson_plans').doc(lessonPlanRef).set(lessonData)
-        .then(function() {
-            // this worked
-            onSuccess ?  onSuccess() : null;
-        })
-        .catch(function(error) {
-            // this didn't work
-            onFailure ? onFailure(error) : console.log("Failed to set the document data: ", error);
-        });
+            .then(function() {
+                // this worked
+                onSuccess ?  onSuccess() : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to set the document data: ", error);
+            });
     },
 
     getUserShareLocations : function(user, onSuccess, onFailure) {
         // get all the locations this user is sharing right now
         firebase.firestore().collection('locations').where("user_uid", "==", user.uid).orderBy("reference").get()
-        .then(function(querySnapshot) {
-            // this worked
-            onSuccess ?  onSuccess(querySnapshot) : null;
-        })
-        .catch(function(error) {
-            // this didn't work
-            onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
-        });
+            .then(function(querySnapshot) {
+                // this worked
+                onSuccess ?  onSuccess(querySnapshot) : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
+            });
     },
 
     deleteUserShareLocations : function(user, type, onSuccess, onFailure) {
@@ -603,39 +735,39 @@ const firebaseData = {
 
     deleteUserShareLocation : function(locationRef, onSuccess, onFailure) {
         // get all the locations this user is sharing right now
-        firebase.firestore().collection('locations').doc(locationRef).delete()
-        .then(function() {
-            // this worked
-            onSuccess ?  onSuccess() : null;
-        })
-        .catch(function(error) {
-            // this didn't work
-            onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
-        });
+        firebase.firestore().collection(this.collectionLocations).doc(locationRef).delete()
+            .then(function() {
+                // this worked
+                onSuccess ?  onSuccess() : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
+            });
     },
 
     setUserShareLocation : function(locationRef, locationData, onSuccess, onFailure) {
-        firebase.firestore().collection('locations').doc(locationRef).set(locationData)
-        .then(function() {
-            // this worked
-            onSuccess ?  onSuccess() : null;
-        })
-        .catch(function(error) {
-            // this didn't work
-            onFailure ? onFailure(error) : console.log("Failed to set the document data: ", error);
-        });
+        firebase.firestore().collection(this.collectionLocations).doc(locationRef).set(locationData)
+            .then(function() {
+                // this worked
+                onSuccess ?  onSuccess() : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to set the document data: ", error);
+            });
     },
 
     addUserShareLocation : function(locationData, onSuccess, onFailure) {
-        firebase.firestore().collection('locations').add(locationData)
-        .then(function(newDocRef) {
-            // this worked
-            onSuccess ?  onSuccess(newDocRef) : null;
-        })
-        .catch(function(error) {
-            // this didn't work
-            onFailure ? onFailure(error) : console.log("Failed to add the document: ", error);
-        });
+        firebase.firestore().collection(this.collectionLocations).add(locationData)
+            .then(function(newDocRef) {
+                // this worked
+                onSuccess ?  onSuccess(newDocRef) : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to add the document: ", error);
+            });
     },
 
     getCurrentGeoLocation : function(onSuccess, onFailure) {
