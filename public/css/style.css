@@ -496,6 +496,12 @@
 			top: 0.25em;
 		}
 
+		.image.half img {
+			margin-left: auto;
+			margin-right: auto;
+			width: 50%;
+		}
+
 		.image.left, .image.right {
 			max-width: 40%;
 		}

@@ -75,7 +75,9 @@ function signinFirebase() {
     };
 
     // show the container to login with
-    document.getElementById('firebase_login_container').style.display = null;
+    var uiElement = document.getElementById('firebase_login_container');
+    uiElement.style.display = null;
+    uiElement.scrollIntoView();
 
     // Initialize the FirebaseUI Widget using Firebase.
     if(firebaseui.auth.AuthUI.getInstance()) {
@@ -89,22 +91,7 @@ function signinFirebase() {
 
 function updateFirebaseUserDisplay(user) {
     // update the dispay according the user being logged on or not
-    var signIn = document.getElementById('firebaseSignIn');
-    var signedIn = document.getElementById('firebaseSignedIn');
-    if (signIn && signedIn) {
-        if (user) {
-            // User is signed in.
-            signIn.style.display = 'none';
-            signedIn.style.display = null;
-            signedIn.innerHTML  = '<a href="profile.html">' + sanitizeHTML(user.displayName) + '</a>';
-            console.log('user ' + user.displayName + " logged in");
-        } else {
-            // No user is signed in.
-            signIn.style.display = null;
-            signedIn.style.display = 'none';
-            console.log('no user logged in');
-        }
-    }
+    updateMenuButtons(user, false, false);
     // update user role details
     updateFirebaseUserItems(user);
 }
@@ -122,13 +109,41 @@ function initialiseFirebaseLoginButton() {
             // dispatch this change to the document
             document.dispatchEvent(new Event('firebaseuserchange'));
         });
-        signIn.onclick = signinFirebase;
     }
 };
 
 function showFirebaseLoginButtons(user, userData) {
-    var coachingItems = document.getElementsByClassName("menu_extras");
+    // get if the user is a coach / admin
     var isCoach = firebaseData.isUserCoach(userData);
+    var isAdmin = firebaseData.isUserAdmin(userData);
+    // and update the buttons accordingly
+    updateMenuButtons(user, isCoach, isAdmin);
+}
+
+function removeFirebaseLoginButtons() {
+    // remove all the coaching options
+    updateMenuButtons(null, false, false);
+}
+
+function updateMenuButtons(user, isCoach, isAdmin) {
+
+    // update the sign in buttons on the menu
+    var signIn = document.getElementById('firebaseSignIn');
+    var signedIn = document.getElementById('firebaseSignedIn');
+    if (signIn && signedIn) {
+        if (user) {
+            // User is signed in.
+            signIn.style.display = 'none';
+            signedIn.style.display = null;
+            signedIn.innerHTML  = '<a href="profile.html">' + sanitizeHTML(user.displayName) + '</a>';
+        } else {
+            // No user is signed in.
+            signIn.style.display = null;
+            signedIn.style.display = 'none';
+        }
+    }
+
+    var coachingItems = document.getElementsByClassName("menu_extras");
     for (var i = 0; i < coachingItems.length; i++) {
         if (isCoach) {
             coachingItems[i].style.display = null;
@@ -139,7 +154,6 @@ function showFirebaseLoginButtons(user, userData) {
     }
     // and admin if we are admin
     var adminItems = document.getElementsByClassName("menu_admin");
-    var isAdmin = firebaseData.isUserAdmin(userData);
     for (var i = 0; i < adminItems.length; i++) {
         if (isAdmin) {
             adminItems[i].style.display = null;
@@ -148,19 +162,51 @@ function showFirebaseLoginButtons(user, userData) {
             adminItems[i].style.display = 'none';
         }
     }
-}
+    // the drop-down menu is different though - we lost all our ids so we have to find them by hand
+    var dropDownMenus = document.getElementsByClassName('nav_menu_buttons');
+    if (dropDownMenus && dropDownMenus.length === 1) {
+        var dropDownItems = dropDownMenus[0].getElementsByClassName("link");
+        var isHidingBelow = false;
+        for (var i = 0; i < dropDownItems.length; ++i) {
+            if (dropDownItems[i].classList.contains('depth-0')) {
+                // by default, we are not hiding this
+                isHidingBelow = false;
+                dropDownItems[i].style.display = null;
+                // this is a top-level, is it the admin one
+                if (dropDownItems[i].innerHTML.includes('Admin')) {
+                    // this is admin
+                    if (!isAdmin) {
+                        dropDownItems[i].style.display = 'none';
+                        isHidingBelow = true;
+                    }
+                }
+                else if (dropDownItems[i].innerHTML.includes('Extras')) {
+                    // this is extras
+                    if (!isCoach) {
+                        dropDownItems[i].style.display = 'none';
+                        isHidingBelow = true;
+                    }
+                }
+                else if (dropDownItems[i].innerHTML.includes('Log In...')) {
+                    // this is the log in button
+                    if (user) {
+                        dropDownItems[i].innerHTML = dropDownItems[i].innerHTML.replace('Log In...', sanitizeHTML(user.displayName));
+                        dropDownItems[i].href = 'profile.html';
+                        isHidingBelow = true;
+                    }
+                }
+            }
+            else if (isHidingBelow) {
+                // hide this, it's below a top-level one we want to hide
+                dropDownItems[i].style.display = 'none';
+            }
+            else {
+                // show it then
+                dropDownItems[i].style.display = null;
+            }
+        }
+    }
 
-function removeFirebaseLoginButtons() {
-    // remove all the coaching options
-    var coachingItems = document.getElementsByClassName("menu_extras");
-    for (var i = 0; i < coachingItems.length; i++) {
-        coachingItems[i].style.display = 'none';
-    }
-    // remove all the admin options
-    var adminItems = document.getElementsByClassName("menu_admin");
-    for (var i = 0; i < adminItems.length; i++) {
-        adminItems[i].style.display = 'none';
-    }
 }
     
 function updateFirebaseUserItems (user) {

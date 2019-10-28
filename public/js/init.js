@@ -41,7 +41,7 @@
 						clickToHide: true,
 						height: '100%',
 						hidden: true,
-						html: '<div data-action="navList" data-args="nav"></div>',
+						html: '<div class="nav_menu_buttons" data-action="navList" data-args="nav"></div>',
 						orientation: 'vertical',
 						position: 'top-left',
 						side: 'left',
