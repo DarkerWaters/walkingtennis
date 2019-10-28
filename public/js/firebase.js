@@ -206,7 +206,6 @@ function updateMenuButtons(user, isCoach, isAdmin) {
             }
         }
     }
-
 }
     
 function updateFirebaseUserItems (user) {
