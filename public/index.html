@@ -52,11 +52,14 @@
 		<h1>Walking Tennis Academy</h1>
 		<nav id="nav">
 			<ul>
+				<li><a href="index.html">Home</a></li>
 				<li>
 					<a href="javascript:signinFirebase();" id="firebaseSignIn" class="button special">Log In...</a>
-					<p href="profile.html" id="firebaseSignedIn" style="display: none">Profile</p>
+					<ul class='menu_members'>
+						<li class='menu_members' ><a href="members_profile.html">Profile</a></li>
+						<li class='menu_members'><a href="members_friends.html">Friends</a></li>
+					</ul>
 				</li>
-				<li><a href="index.html">Home</a></li>
 				<li><a href="learning.html">Learn to Play</a></li>
 				<li class='menu_extras' style="display: none">
 					<a href="">Extras</a>
@@ -78,11 +81,15 @@
 		</nav>
 	</header>
 
+	<div id="firebase_login_container" class="message_box" style="display: none;">
+		<a href="javascript:cancelLoginUi();" class="button special">x</a>
+		<span class="image half"><img src="images/branding/logos/full_logo_fill_512.png" alt="" /></span>
+	</div>
+	<div id="firebaseui-auth-container"></div>
+
 	<!-- Banner -->
 	<section id="banner">
 		<div class="inner">
-			<div id="firebase_login_container" style="padding: 20px;"> </div>
-			<div id="firebaseui-auth-container"></div>
 			<span class="image half"><img src="images/branding/logos/full_logo_fill_512.png" alt="" /></span>
 			<p>Bringing Tennis to Everyone</p>
 			<ul class="actions">

@@ -1,91 +1,96 @@
 function signinFirebase() {
-    // Initialize the FirebaseUI Widget using Firebase.
-    // https://firebase.google.com/docs/auth/web/firebaseui
-    var uiConfig = {
-        callbacks: {
-            signInSuccessWithAuthResult: function (authResult, redirectUrl) {
-                // signed in successfully, hide the box we used to select the type
-                document.getElementById('firebase_login_container').style.display = "none";
-                // and we can get the data here
-                /*
-                var user = authResult.user;
-                var credential = authResult.credential;
-                var isNewUser = authResult.additionalUserInfo.isNewUser;
-                var providerId = authResult.additionalUserInfo.providerId;
-                var operationType = authResult.operationType;
-                // Do something with the returned AuthResult.
-                */
-                // Return type determines whether we continue the redirect automatically
-                // or whether we leave that to developer to handle.
-                return true;
-            },
-            signInFailure: function (error) {
-                // Some unrecoverable error occurred during sign-in.
-                document.getElementById('firebase_login_container').style.display = "none";
-                // Return a promise when error handling is completed and FirebaseUI
-                // will reset, clearing any UI. This commonly occurs for error code
-                // 'firebaseui/anonymous-upgrade-merge-conflict' when merge conflict
-                // occurs. Check below for more details on this.
-                return handleUIError(error);
-            },
-            uiShown: function () {
-                // The widget is rendered, hide the loader button
-                var signIn = document.getElementById('firebaseSignIn');
-                if (signIn) {
-                    signIn.style.display = 'none';
+    if (!firebaseData.getUser()) {
+        // Initialize the FirebaseUI Widget using Firebase.
+        // https://firebase.google.com/docs/auth/web/firebaseui
+        var uiConfig = {
+            callbacks: {
+                signInSuccessWithAuthResult: function (authResult, redirectUrl) {
+                    // signed in successfully, hide the box we used to select the type
+                    document.getElementById('firebase_login_container').style.display = "none";
+                    // and we can get the data here
+                    /*
+                    var user = authResult.user;
+                    var credential = authResult.credential;
+                    var isNewUser = authResult.additionalUserInfo.isNewUser;
+                    var providerId = authResult.additionalUserInfo.providerId;
+                    var operationType = authResult.operationType;
+                    // Do something with the returned AuthResult.
+                    */
+                    // Return type determines whether we continue the redirect automatically
+                    // or whether we leave that to developer to handle.
+                    return true;
+                },
+                signInFailure: function (error) {
+                    // Some unrecoverable error occurred during sign-in.
+                    document.getElementById('firebase_login_container').style.display = "none";
+                    // Return a promise when error handling is completed and FirebaseUI
+                    // will reset, clearing any UI. This commonly occurs for error code
+                    // 'firebaseui/anonymous-upgrade-merge-conflict' when merge conflict
+                    // occurs. Check below for more details on this.
+                    return handleUIError(error);
+                },
+                uiShown: function () {
+                    // The widget is rendered, hide the loader button
                 }
-            }
-        },
-        credentialHelper: firebaseui.auth.CredentialHelper.ACCOUNT_CHOOSER_COM,
-        // Query parameter name for mode.
-        queryParameterForWidgetMode: 'mode',
-        // Query parameter name for sign in success url.
-        queryParameterForSignInSuccessUrl: 'signInSuccessUrl',
-        // Will use popup for IDP Providers sign-in flow instead of the default, redirect.
-        signInFlow: 'popup',
-        signInSuccessUrl: '#',
-        signInOptions: [
-            // Leave the lines as is for the providers you want to offer your users.
-            firebase.auth.GoogleAuthProvider.PROVIDER_ID
-            /*,firebase.auth.TwitterAuthProvider.PROVIDER_ID
-            {
-                provider: firebase.auth.EmailAuthProvider.PROVIDER_ID,
-                // Whether the display name should be displayed in the Sign Up page.
-                requireDisplayName: true
-            }*/
-            /*,{
-                provider: firebase.auth.PhoneAuthProvider.PROVIDER_ID,
-                // Invisible reCAPTCHA with image challenge and bottom left badge.
-                recaptchaParameters: {
-                    type: 'image',
-                    size: 'invisible',
-                    badge: 'bottomleft'
-                }
-            }*/
-            //,firebase.auth.FacebookAuthProvider.PROVIDER_ID
-            //,firebase.auth.GithubAuthProvider.PROVIDER_ID
-            ,firebase.auth.EmailAuthProvider.PROVIDER_ID
-        ],
-        // tosUrl and privacyPolicyUrl accept either url string or a callback
-        // function.
-        // Terms of service url.
-        tosUrl: 'https://www.walkingtennis.org/adminterms.html',
-        // Privacy policy url.
-        privacyPolicyUrl: 'https://www.walkingtennis.org/adminprivacy.html'
-    };
+            },
+            credentialHelper: firebaseui.auth.CredentialHelper.ACCOUNT_CHOOSER_COM,
+            // Query parameter name for mode.
+            queryParameterForWidgetMode: 'mode',
+            // Query parameter name for sign in success url.
+            queryParameterForSignInSuccessUrl: 'signInSuccessUrl',
+            // Will use popup for IDP Providers sign-in flow instead of the default, redirect.
+            signInFlow: 'popup',
+            signInSuccessUrl: '#',
+            signInOptions: [
+                // Leave the lines as is for the providers you want to offer your users.
+                firebase.auth.GoogleAuthProvider.PROVIDER_ID
+                /*,firebase.auth.TwitterAuthProvider.PROVIDER_ID
+                {
+                    provider: firebase.auth.EmailAuthProvider.PROVIDER_ID,
+                    // Whether the display name should be displayed in the Sign Up page.
+                    requireDisplayName: true
+                }*/
+                /*,{
+                    provider: firebase.auth.PhoneAuthProvider.PROVIDER_ID,
+                    // Invisible reCAPTCHA with image challenge and bottom left badge.
+                    recaptchaParameters: {
+                        type: 'image',
+                        size: 'invisible',
+                        badge: 'bottomleft'
+                    }
+                }*/
+                //,firebase.auth.FacebookAuthProvider.PROVIDER_ID
+                //,firebase.auth.GithubAuthProvider.PROVIDER_ID
+                ,firebase.auth.EmailAuthProvider.PROVIDER_ID
+            ],
+            // tosUrl and privacyPolicyUrl accept either url string or a callback
+            // function.
+            // Terms of service url.
+            tosUrl: 'https://www.walkingtennis.org/adminterms.html',
+            // Privacy policy url.
+            privacyPolicyUrl: 'https://www.walkingtennis.org/adminprivacy.html'
+        };
 
-    // show the container to login with
+        // show the container to login with
+        var uiElement = document.getElementById('firebase_login_container');
+        uiElement.style.display = null;
+        uiElement.scrollIntoView();
+
+        // Initialize the FirebaseUI Widget using Firebase.
+        if(firebaseui.auth.AuthUI.getInstance()) {
+            const ui = firebaseui.auth.AuthUI.getInstance();
+            ui.start('#firebase_login_container', uiConfig);
+        } else {
+            const ui = new firebaseui.auth.AuthUI(firebase.auth());
+            ui.start('#firebase_login_container', uiConfig);	
+        }
+    }
+}
+
+function cancelLoginUi() {
     var uiElement = document.getElementById('firebase_login_container');
-    uiElement.style.display = null;
-    uiElement.scrollIntoView();
-
-    // Initialize the FirebaseUI Widget using Firebase.
-    if(firebaseui.auth.AuthUI.getInstance()) {
-        const ui = firebaseui.auth.AuthUI.getInstance();
-        ui.start('#firebase_login_container', uiConfig);
-    } else {
-        const ui = new firebaseui.auth.AuthUI(firebase.auth());
-        ui.start('#firebase_login_container', uiConfig);	
+    if (uiElement) {
+        uiElement.style.display = 'none';
     }
 }
 
@@ -99,10 +104,7 @@ function updateFirebaseUserDisplay(user) {
 function initialiseFirebaseLoginButton() {
     // setup the login button properly
     var signIn = document.getElementById('firebaseSignIn');
-    var signedIn = document.getElementById('firebaseSignedIn');
-    if (signIn && signedIn) {
-        signIn.style.display = 'none';
-        signedIn.style.display = 'none';
+    if (signIn) {
         firebase.auth().onAuthStateChanged(function(user) {
             // update the display of the user here
             updateFirebaseUserDisplay(user);
@@ -129,27 +131,27 @@ function updateMenuButtons(user, isCoach, isAdmin) {
 
     // update the sign in buttons on the menu
     var signIn = document.getElementById('firebaseSignIn');
-    var signedIn = document.getElementById('firebaseSignedIn');
-    if (signIn && signedIn) {
+    if (signIn) {
         if (user) {
-            // User is signed in.
-            signIn.style.display = 'none';
-            signedIn.style.display = null;
-            signedIn.innerHTML  = '<a href="profile.html">' + sanitizeHTML(user.displayName) + '</a>';
+            // User is signed in, change the profile button to say the member's name instead
+            signIn.textContent = sanitizeHTML(user.displayName) + "...";
+            signIn.classList.remove('button');
+            signIn.classList.remove('special');
         } else {
             // No user is signed in.
-            signIn.style.display = null;
-            signedIn.style.display = 'none';
+            signIn.textContent = 'Log In...';
+            signIn.classList.add('button');
+            signIn.classList.add('special');
         }
     }
-
-    var coachingItems = document.getElementsByClassName("menu_extras");
-    for (var i = 0; i < coachingItems.length; i++) {
+    // hide or show the extras menus accordingly
+    var extraItems = document.getElementsByClassName("menu_extras");
+    for (var i = 0; i < extraItems.length; i++) {
         if (isCoach) {
-            coachingItems[i].style.display = null;
+            extraItems[i].style.display = null;
         }
         else {
-            coachingItems[i].style.display = 'none';
+            extraItems[i].style.display = 'none';
         }
     }
     // and admin if we are admin
@@ -160,6 +162,16 @@ function updateMenuButtons(user, isCoach, isAdmin) {
         }
         else {
             adminItems[i].style.display = 'none';
+        }
+    }
+    // and the members ones if logged in
+    var membersItems = document.getElementsByClassName("menu_members");
+    for (var i = 0; i < membersItems.length; i++) {
+        if (user) {
+            membersItems[i].style.display = null;
+        }
+        else {
+            membersItems[i].style.display = 'none';
         }
     }
     // the drop-down menu is different though - we lost all our ids so we have to find them by hand
@@ -173,25 +185,28 @@ function updateMenuButtons(user, isCoach, isAdmin) {
                 isHidingBelow = false;
                 dropDownItems[i].style.display = null;
                 // this is a top-level, is it the admin one
-                if (dropDownItems[i].innerHTML.includes('Admin')) {
+                if (dropDownItems[i].innerText.includes('Admin')) {
                     // this is admin
                     if (!isAdmin) {
                         dropDownItems[i].style.display = 'none';
                         isHidingBelow = true;
                     }
                 }
-                else if (dropDownItems[i].innerHTML.includes('Extras')) {
+                else if (dropDownItems[i].innerText.includes('Extras')) {
                     // this is extras
                     if (!isCoach) {
                         dropDownItems[i].style.display = 'none';
                         isHidingBelow = true;
                     }
                 }
-                else if (dropDownItems[i].innerHTML.includes('Log In...')) {
+                else if (dropDownItems[i].innerText.includes('...')) {
                     // this is the log in button
                     if (user) {
-                        dropDownItems[i].innerHTML = dropDownItems[i].innerHTML.replace('Log In...', sanitizeHTML(user.displayName));
-                        dropDownItems[i].href = 'profile.html';
+                        // show the name, not the log in text
+                        dropDownItems[i].textContent = sanitizeHTML(user.displayName) + "...";
+                    }
+                    else {
+                        dropDownItems[i].textContent = "Log In..."
                         isHidingBelow = true;
                     }
                 }

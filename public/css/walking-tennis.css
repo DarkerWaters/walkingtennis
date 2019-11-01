@@ -44,5 +44,14 @@
   transform: scale(2);
   -ms-transform: scale(2); /* IE 9 */
   -webkit-transform: scale(2); /* Safari and Chrome */
+}
 
+.message_box{
+    position:fixed;
+    z-index:100;
+    background-color: #424242;
+    left:20%;
+    width:60%; 
+    top:20%;
+    padding: 20px;
 }
