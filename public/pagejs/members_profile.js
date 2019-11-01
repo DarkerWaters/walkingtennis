@@ -301,19 +301,19 @@ function resetPassword() {
 function enableEdit() {
     var nameEdit = document.getElementById('name');
     var emailEdit = document.getElementById('email');
-    var latEdit = document.getElementById('home_location_lat');
-    var lonEdit = document.getElementById('home_location_lon');
+    /*var latEdit = document.getElementById('home_location_lat');
+    var lonEdit = document.getElementById('home_location_lon');*/
 
     // stop the entry fields from being readonly
     nameEdit.removeAttribute('readonly');
     emailEdit.removeAttribute('readonly');
-    latEdit.removeAttribute('readonly');
-    lonEdit.removeAttribute('readonly');
+    /*latEdit.removeAttribute('readonly');
+    lonEdit.removeAttribute('readonly');*/
 
     listenForChange(nameEdit, function() {isChangedLocation = true; setUserDataEdited(true);});
     listenForChange(emailEdit, function() {isChangedLocation = true; setUserDataEdited(true);});
-    listenForChange(latEdit, function() {isChangedLocation = true; setUserDataEdited(true);});
-    listenForChange(lonEdit, function() {isChangedLocation = true; setUserDataEdited(true);});
+    /*listenForChange(latEdit, function() {isChangedLocation = true; setUserDataEdited(true);});
+    listenForChange(lonEdit, function() {isChangedLocation = true; setUserDataEdited(true);});*/
 
     // hide the change button
     document.getElementById('edit_profile_button').style.display = 'none';
@@ -321,9 +321,11 @@ function enableEdit() {
     document.getElementById('edit_profile_commit_button').style.display = null;
     document.getElementById('edit_profile_discard_button').style.display = null;
     // and the map ones
+    /*
     document.getElementById('set_home_location_text').style.display = null;
     document.getElementById('set_home_location_button').style.display = null;
     document.getElementById('set_home_location_button_here').style.display = null;
+    */
 }
 
 function disableEdit() {
@@ -331,9 +333,11 @@ function disableEdit() {
     document.getElementById('edit_profile_commit_button').style.display = 'none';
     document.getElementById('edit_profile_discard_button').style.display = 'none';
     // and the map ones
+    /*
     document.getElementById('set_home_location_text').style.display = 'none';
     document.getElementById('set_home_location_button').style.display = 'none';
     document.getElementById('set_home_location_button_here').style.display = 'none';
+    */
     // and show the edit button
     document.getElementById('edit_profile_button').style.display = null;
     document.getElementById('edit_profile_commit_button').classList.remove('special');
@@ -341,14 +345,18 @@ function disableEdit() {
     // put the readonly back in
     var nameEdit = document.getElementById('name');
     var emailEdit = document.getElementById('email');
+    /*
     var latEdit = document.getElementById('home_location_lat');
     var lonEdit = document.getElementById('home_location_lon');
+    */
 
     // stop the entry fields from being readonly
     nameEdit.setAttribute('readonly', true);
     emailEdit.setAttribute('readonly', true);
+    /*
     latEdit.setAttribute('readonly', true);
     lonEdit.setAttribute('readonly', true);
+    */
 }
 
 function setUserDataEdited(isChanged) {

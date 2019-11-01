@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="description" content="" />
+	<meta name="keywords" content="" />
+	<title>Walking Tennis Friends</title>
+
+	<!-- update the version number as needed -->
+	<script defer src="/__/firebase/7.0.0/firebase-app.js"></script>
+	<!-- include only the Firebase features as you need -->
+	<script defer src="/__/firebase/7.0.0/firebase-auth.js"></script>
+	<script defer src="/__/firebase/7.0.0/firebase-database.js"></script>
+	<script defer src="/__/firebase/7.0.0/firebase-messaging.js"></script>
+	<script defer src="/__/firebase/7.0.0/firebase-storage.js"></script>
+	<script defer src="/__/firebase/7.0.0/firebase-firestore.js"></script>
+	<!-- add the UI for logging in-->
+	<script src="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.js"></script>
+	<link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.css" />
+	<!-- initialize the SDK after all desired features are loaded -->
+	<script defer src="/__/firebase/init.js"></script>
+
+	<!-- add our page specific javascript here -->
+	<script src="js/geofire.js"></script>
+	<script src="pagejs/members_friends.js"></script>
+
+	<!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
+	<script src="js/jquery.min.js"></script>
+	<script src="js/jquery.dropotron.min.js"></script>
+	<script src="js/jquery.scrollgress.min.js"></script>
+	<script src="js/jquery.scrolly.min.js"></script>
+	<script src="js/jquery.slidertron.min.js"></script>
+	<script src="js/skel.min.js"></script>
+	<script src="js/skel-layers.min.js"></script>
+	<script src="js/firebase.js"></script>
+	<script src="js/init.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/walking-tennis.css" />
+
+	<noscript>
+		<link rel="stylesheet" href="css/skel.css" />
+		<link rel="stylesheet" href="css/style.css" />
+		<link rel="stylesheet" href="css/style-xlarge.css" />
+	</noscript>
+	<!--[if lte IE 9]><link rel="stylesheet" href="css/ie/v9.css" /><![endif]-->
+	<!--[if lte IE 8]><link rel="stylesheet" href="css/ie/v8.css" /><![endif]-->
+</head>
+
+<body class="landing">
+	<!-- Header -->
+	<header id="header" class="skel-layers-fixed">
+		<h1><a href="index.html">Walking Tennis Academy</a></h1>
+		<nav id="nav">
+			<ul>
+				<li><a href="index.html">Home</a></li>
+				<li>
+					<a href="javascript:signinFirebase();" id="firebaseSignIn" class="button special">Log In...</a>
+					<ul class='menu_members'>
+						<li class='menu_members' ><a href="members_profile.html">Profile</a></li>
+						<li class='menu_members'><a href="members_friends.html">Friends</a></li>
+					</ul>
+				</li>
+				<li><a href="learning.html">Learn to Play</a></li>
+				<li class='menu_extras' style="display: none">
+					<a href="">Extras</a>
+					<ul>
+						<li><a href="extras_coaching.html">Coaching</a></li>
+						<li><a href="extras_promotion.html">Promotion</a></li>
+					</ul>
+				</li>
+				<li><a href="rules.html">Rules</a></li>
+				<li><a href="placestoplay.html">Places to Play</a></li>
+				<li class='menu_admin' style="display: none">
+					<a href="">Admin</a>
+					<ul>
+						<li><a href="admin_users.html">Manage Users</a></li>
+						<li><a href="admin_editLessons.html">Edit Lessons</a></li>
+					</ul>
+				</li>
+			</ul>
+		</nav>
+	</header>
+
+	<!-- log-in area to show the google login options -->
+	<div id="firebase_login_container" class="message_box" style="display: none;">
+		<a href="javascript:cancelLoginUi();" class="button special">x</a>
+		<span class="image half"><img src="images/branding/logos/full_logo_fill_512.png" alt="" /></span>
+	</div>
+	<div id="firebaseui-auth-container"></div>
+
+	<!-- Main -->
+	<section id="main" class="wrapper style1">
+		<div class="container">
+			<header class="major">
+				<h2>Walking Tennis Friends</h2>
+				<p>Find and communicate with fellow WkTA members here...</p>
+			</header>
+			<form id='profile_data' method="post" action="javascript:findByName()">
+				<!-- form for the finding of friends -->
+				<div class="row uniform">
+					<div class="8u 12u(3)">
+						<input type="text" name="search_text" id="search_text" value="" placeholder="Name or email address" />
+						<label for="search_text">Name or email address of your friend</label>
+					</div>
+					<div class="4u 12u(3)">
+						<a class="button special" id='find_by_email' onclick="findByName();">Find friends...</a>
+					</div>
+				</div>
+				<!-- a hidden row for the template to reside in-->
+				<div class="row uniform" style="display: none;">
+					<div class="4u 12u(3)" id='template_found_friend'>
+						<ul style="list-style-type:none">
+							<li><b>Name: </b><span id="template_found_name">Name of friend</span></li>
+							<li><b>Email: </b><span id="template_found_email">Email of friend</span></li>
+							<li style="display: none;"><b>UID: </b><span id="template_found_uid">UID of friend</span></li>
+						</ul>
+						<a class="button" id='template_friend_button'>Add Friend</a>
+					</div>
+				</div>
+
+				<div class="row uniform" id='found_friends_container'>
+					<!-- this is where the friends found will appear-->
+				</div>
+				<!--TODO enable mapping once billing is setup - search nearby) -->
+			</form>
+		</div>
+	</section>
+
+	<section id="friends" class="wrapper style1">
+		<div class="container">
+			<header class="major">
+				<h2>Friends</h2>
+				<p>Friends you are connected to...</p>
+				<a class="button" id='previous_friends' onclick='showPreviousFriends()'>Previous</a>
+				<a class="button" id='next_friends' onclick='showNextFriends()'>Next</a>
+			</header>
+			<hr>
+			<div class="row uniform" id='friends_container'>
+				<!-- this is where the friends found will appear-->
+			</div>
+		</div>
+	</section>
+
+	<!-- Footer -->
+	<footer id="footer">
+		<ul class="icons">
+			<li><a href="https://twitter.com/WalkingTennis" class="icon fa-twitter"><span class="label">Twitter</span></a>
+			</li>
+			<li><a href="https://www.facebook.com/walkingtennisacademy/" class="icon fa-facebook"><span
+						class="label">Facebook</span></a></li>
+			<li><a href="https://www.instagram.com/walkingtennisacademy" class="icon fa-instagram"><span
+						class="label">Instagram</span></a></li>
+			<li><a href="https://www.youtube.com/channel/UCTW0Xa6AtSVrYr9b4u6tWJg" class="icon fa-youtube"><span
+						class="label">YouTube</span></a></li>
+			<li><a href="admincontact.html" class="icon fa-envelope"><span class="label">Envelope</span></a></li>
+		</ul>
+		<ul class="menu">
+			<li><a href="adminfaq.html">FAQ</a></li>
+			<li><a href="adminterms.html">Terms of Use</a></li>
+			<li><a href="adminprivacy.html">Privacy</a></li>
+			<li><a href="admincontact.html">Contact</a></li>
+		</ul>
+		<span class="copyright">
+			&copy; Copyright. All rights reserved. Design by Darker Waters LTD
+		</span>
+	</footer>
+</body>
+
+</html>

@@ -262,6 +262,8 @@ const firebaseData = {
     collectionLocations : 'locations',
     collectionLessonPlans : 'lesson_plans',
     collectionCoachingLessons : 'coaching_lessons',
+    collectionUserFriends: 'friends',
+    collectionLessonContents: 'contents',
 
     locationTypeMember : 'member',
 
@@ -367,6 +369,15 @@ const firebaseData = {
             subtitle: "A newly added lesson just now",
             priority: 0,
             progress_options: ""
+        });
+    },
+
+    defaultFriend : function(locationUid, locationData) {
+        return firebaseData.autoCompleteData({
+            name: locationData.user_name,
+            email: locationData.user_email,
+            user_uid: locationData.user_uid,
+            location_uid: locationUid,
         });
     },
 
@@ -498,7 +509,15 @@ const firebaseData = {
                 // oops
                 console.log("Failed to delete a shared location for a deleted user account", error);
             });
-        
+        // get all the user's friends in the collection and delete them all
+        var batch = firebase.firestore().batch();
+        var collectionRef = firebaseData.collectionUsers + '/' + user.uid + '/' + firebaseData.collectionUserFriends;
+        firebase.firestore().collection(collectionRef).listDocuments().then(val => {
+            val.map((val) => {
+                batch.delete(val)
+            })
+            batch.commit()
+        });
         // and delete the user document we have stored
         firebase.firestore().collection(this.collectionUsers).doc(user.uid).delete().then(function() {
             logout();
@@ -537,6 +556,82 @@ const firebaseData = {
     
     isUserAdmin : function(firebaseUserData) {
         return firebaseUserData['isAdmin'];
+    },
+
+    addUserFriend : function(userRef, friendData, onSuccess, onFailure) {
+        firebase.firestore()
+            .collection(firebaseData.collectionUsers)
+            .doc(userRef)
+            .collection(firebaseData.collectionUserFriends)
+            .add(friendData)
+            .then(function(newDocRef) {
+                // this worked
+                onSuccess ?  onSuccess(newDocRef) : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to add the document: ", error);
+            });
+    },
+    
+    getUserFriends : function(userRef, lastFriend, onSuccess, onFailure) {
+        var collectionRef = firebaseData.collectionUsers + '/' + userRef + '/' + firebaseData.collectionUserFriends;
+        if (lastFriend) {
+            firebase.firestore().collection(collectionRef)
+                .orderBy("last_update", 'desc')
+                .startAfter(lastFriend)
+                .limit(9)
+                .get()
+                .then(function(querySnapshot) {
+                    // this worked
+                    onSuccess ?  onSuccess(querySnapshot) : null;
+                })
+                .catch(function(error) {
+                    // this didn't work
+                    onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
+                });
+        }
+        else {
+            firebase.firestore().collection(collectionRef)
+                .orderBy("last_update", 'desc')
+                .limit(9)
+                .get()
+                .then(function(querySnapshot) {
+                    // this worked
+                    onSuccess ?  onSuccess(querySnapshot) : null;
+                })
+                .catch(function(error) {
+                    // this didn't work
+                    onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
+                });
+        }
+    },
+
+    updateUserFriend : function(userRef, friendRef, locationUid, locationData, onSuccess, onFailure) {
+        var collectionRef = firebaseData.collectionUsers + '/' + userRef + '/' + firebaseData.collectionUserFriends;
+        firebase.firestore().collection(collectionRef).doc(friendRef)
+            .set(this.defaultFriend(locationUid, locationData))
+            .then(function() {
+                // this worked
+                onSuccess ?  onSuccess() : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to set the document data: ", error);
+            });
+    },
+
+    deleteUserFriend : function(userRef, friendRef, onSuccess, onFailure) {
+        var collectionRef = firebaseData.collectionUsers + '/' + userRef + '/' + firebaseData.collectionUserFriends;
+        firebase.firestore().collection(collectionRef).doc(friendRef).delete()
+            .then(function() {
+                // this worked
+                onSuccess ?  onSuccess() : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to delete the document: ", error);
+            });
     },
 
     /*
@@ -632,7 +727,7 @@ const firebaseData = {
     },
 
     addLessonSection : function(lessonCollection, lessonRef, onSuccess, onFailure) {
-        firebase.firestore().collection(lessonCollection).doc(lessonRef).collection('contents').add(this.defaultLessonSection())
+        firebase.firestore().collection(lessonCollection).doc(lessonRef).collection(firebaseData.collectionLessonContents).add(this.defaultLessonSection())
             .then(function(newDocRef) {
                 // this worked
                 onSuccess ?  onSuccess(newDocRef) : null;
@@ -644,7 +739,7 @@ const firebaseData = {
     },
     
     getLessonSections : function(isIncludeZeroPriority, lessonCollection, lessonRef, onSuccess, onFailure) {
-        var collectionRef = lessonCollection + '/' + lessonRef + '/contents';
+        var collectionRef = lessonCollection + '/' + lessonRef + '/' + firebaseData.collectionLessonContents;
         if (!isIncludeZeroPriority) {
             // just get ones that are not zero priority - standard as this means 'hidden'
             firebase.firestore().collection(collectionRef).where("priority", ">", 0).orderBy("priority").get()
@@ -672,7 +767,7 @@ const firebaseData = {
     },
 
     setLessonSection : function(lessonCollection, lessonRef, sectionRef, sectionData, onSuccess, onFailure) {
-        var collectionRef = lessonCollection + '/' + lessonRef + '/contents'
+        var collectionRef = lessonCollection + '/' + lessonRef + '/' + firebaseData.collectionLessonContents
         firebase.firestore().collection(collectionRef).doc(sectionRef).set(sectionData)
             .then(function() {
                 // this worked
@@ -685,7 +780,7 @@ const firebaseData = {
     },
 
     deleteLessonSection : function(lessonCollection, lessonRef, sectionRef, onSuccess, onFailure) {
-        var collectionRef = lessonCollection + '/' + lessonRef + '/contents'
+        var collectionRef = lessonCollection + '/' + lessonRef + '/' + firebaseData.collectionLessonContents
         firebase.firestore().collection(collectionRef).doc(sectionRef).delete()
             .then(function() {
                 // this worked
@@ -842,6 +937,70 @@ const firebaseData = {
             onFailure("Geolocation is not supported by this browser.");
         } else {
             console.log("Geolocation is not supported by this browser.");
+        }
+    },
+
+    searchCollectionForMatch : function (collectionName, entryTitle, searchTerm, startAfter, onSuccess, onFailure) {
+        if (startAfter) {
+            firebase.firestore().collection(collectionName)
+                .where(entryTitle, '==', firebaseData.lcRef(searchTerm))
+                .startAfter(startAfter)
+                .limit(25)
+                .get()
+                .then(function (querySnapshot) {
+                    // this worked
+                    onSuccess ?  onSuccess(querySnapshot) : null;
+                })
+                .catch(function(error) {
+                    // this didn't work
+                    onFailure ? onFailure(error) : console.log("Failed to find any matching documents: ", error);
+                });
+        }
+        else {
+            firebase.firestore().collection(collectionName)
+                .where(entryTitle, '==', firebaseData.lcRef(searchTerm))
+                .limit(25)
+                .get()
+                .then(function (querySnapshot) {
+                    // this worked
+                    onSuccess ?  onSuccess(querySnapshot) : null;
+                })
+                .catch(function(error) {
+                    // this didn't work
+                    onFailure ? onFailure(error) : console.log("Failed to find any matching documents: ", error);
+                });
+        }
+    },
+
+    searchCollectionForWord : function (collectionName, searchTerm, startAfter, onSuccess, onFailure) {
+        if (startAfter) {
+            firebase.firestore().collection(collectionName)
+                .where("words", 'array-contains', firebaseData.lcRef(searchTerm))
+                .startAfter(startAfter)
+                .limit(25)
+                .get()
+                .then(function (querySnapshot) {
+                    // this worked
+                    onSuccess ?  onSuccess(querySnapshot) : null;
+                })
+                .catch(function(error) {
+                    // this didn't work
+                    onFailure ? onFailure(error) : console.log("Failed to find any matching documents: ", error);
+                });
+        }
+        else {
+            firebase.firestore().collection(collectionName)
+                .where("words", 'array-contains', firebaseData.lcRef(searchTerm))
+                .limit(25)
+                .get()
+                .then(function (querySnapshot) {
+                    // this worked
+                    onSuccess ?  onSuccess(querySnapshot) : null;
+                })
+                .catch(function(error) {
+                    // this didn't work
+                    onFailure ? onFailure(error) : console.log("Failed to find any matching documents: ", error);
+                });
         }
     },
 };
