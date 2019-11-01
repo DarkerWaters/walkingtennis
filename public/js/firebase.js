@@ -331,16 +331,19 @@ const firebaseData = {
     },
 
     defaultLocation : function(name, email, uid, referenceName, typeStr, locationData, geoHash) {
-        return firebaseData.autoCompleteData({
-            location : locationData,
-            geohash : geoHash,
+        var newData = {
             reference : referenceName,
             type : typeStr,
             user_email : email,
             user_name : name,
-            user_uid : uid,
+            user_uid : uid
             // don't create empty data - to prevent over-writing any existing data on the update
-        });
+        };
+        if (locationData && geoHash) {
+            newData['location'] = locationData;
+            newData['geohash'] = geoHash;
+        }
+        return firebaseData.autoCompleteData(newData);
     },
 
     defaultLesson : function() {

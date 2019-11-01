@@ -87,6 +87,7 @@
 				<p>View and update your Walking Tennis data here...</p>
 			</header>
 			<form id='profile_data' method="post" action="#">
+				<!-- form for the profile data -->
 				<div class="row uniform">
 					<div class="3u 12u(3)">
 						<span class="image fill">
@@ -112,6 +113,8 @@
 						<a class="button special" id='send_verification' onclick="sendEmailVerfication();">Send verification email...</a>
 					</div>
 				</div>
+				<!-- Home location to set -->
+				<!--TODO enable mapping once billing is setup)
 				<div class="row uniform">
 					<div class="6u 12u(3)">
 						<input type="text" id="home_location_lat" name="home location latitude" value="51.4933533" readonly/>
@@ -125,8 +128,11 @@
 						<a class="button" id='set_home_location_button_here' onclick="onSetHomeLocationToCurrent();" style="display: none;">Current Position</a>
 						<div id="home_locations_map" style="width: 360px; height: 360px;">
 							<!-- will contain the map of shared locations -->
-						</div>
+				<!--	</div>
 					</div>
+				</div>-->
+				<!-- Password change -->
+				<div class="row uniform">
 					<div id="change_password_container" class="6u 12u(3)" style="display: none;">
 						<p>
 							<input type="password" name="password one" id="password_one" value="" />
@@ -138,20 +144,20 @@
 						<a class="button" id='reset_password' onclick="resetPassword();">Save</a>
 					</div>
 				</div>
+				<!-- Enabling profile editing -->
 				<div class="row uniform">
 					<div class="6u 12u(3)">
 						<a class="button" id='edit_profile_button' onclick="enableEdit();">Change Details</a>
 						<a class="button" id='edit_profile_commit_button' onclick="saveEdits();" style="display: none;">Save Changes</a>
 						<a class="button" id='edit_profile_discard_button' onclick="discardEdits();" style="display: none;">Discard Changes</a>
 					</div>
-				</div>
-				<div class="row uniform">
 					<div class="6u 12u(3)">
 						<a class="button" id='change_password_button' onclick="enablePasswordChange();">Change Password</a>
 					</div>
 				</div>
 				<p></p>
 				<hr>
+				<!-- Communications preferences -->
 				<header class="major">
 					<h3>Communications preferences</h3>
 				</header>
@@ -171,11 +177,11 @@
 				</div>
 				<p></p>
 				<hr>
+				<!-- locations to share -->
 				<div class="row uniform">
-					<!-- locations to share -->
 					<div class="6u 12u(3)">
 						<input type="checkbox" id="is_share_location" name="is share location" onclick="onClickShareLocation();">
-						<label for="is_share_location">Share location with other WkTA members (to find partners to play with)</label>
+						<label for="is_share_location">Share information with other WkTA members (to find partners to play with)</label>
 					</div>
 					<div class="6u 12u(3)" id="share_locations_map" style="width: 360px; height: 360px; display: none;">
 						<!-- will contain the map of shared locations -->
@@ -193,12 +199,14 @@
 								<td>
 									<input type="email" id="location_share_email" name="location share email" value="your email here"/>
 								</td>
+								<!--TODO location sharing once billing is enabled
 								<td>
 									<input type="text" id="location_share_lat" name="location share latitude" value="51.4933533"/>
 									<input type="text" id="location_share_lon" name="location share longitude" value="-2.6259016"/>
 									<span id="location_share_location">51.4933533, -2.6259016</span>
 									<a class="button fit small" id='location_share_location_button' onclick="onClickChooseShareLocation(this);">Choose on map</a>
 								</td>
+								-->
 							</tr>
 						</table>
 						<table id="location_share_table" class="alt" style="display: none;">
@@ -207,7 +215,9 @@
 									<th>Title (for you)</th>
 									<th>Name to share</th>
 									<th>Email to share</th>
+									<!--TODO location sharing once billing is enabled
 									<th>At Location</th>
+									-->
 								</tr>
 							</thead>
 							<tbody>

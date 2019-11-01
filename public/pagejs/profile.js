@@ -48,6 +48,8 @@ function ensureUpToDateUserData(user, data) {
 }
 
 function displayMembershipData(data) {
+    /*
+    TODO location setting when billing is enabled
     document.getElementById('home_location_lat').value = data['location'] ? data['location'].latitude : "";
     document.getElementById('home_location_lon').value = data['location'] ? data['location'].longitude : "";
     var locationString = "";
@@ -55,6 +57,7 @@ function displayMembershipData(data) {
         locationString = Number(data['location'].latitude) + ", " + Number(data['location'].longitude);
     }
     document.getElementById('home_location_label').innerHTML = locationString;
+    */
 
     var date = data['expiry_member'];
     if (date == null || date.toDate().getTime() > new Date().getTime()) {
@@ -119,9 +122,12 @@ function populateUserData() {
         document.getElementById('profile_data').style.display = null;
         document.getElementById('name').value = user.displayName;
         document.getElementById('email').value = user.email;
+        /*
+        TODO location setting when billing is enabled
         document.getElementById('home_location_lat').value = "";
         document.getElementById('home_location_lon').value = "";
         document.getElementById('home_location_label').innerHTML = "";
+        */
         document.getElementById('email-verified').checked = user.emailVerified;
         document.getElementById('user_image').src = user.photoURL;
         document.getElementById('membership-member').checked = true;
@@ -161,6 +167,10 @@ function populateUserData() {
 };
 
 function setHomeLocationMap() {
+
+    /*
+    TODO location setting when billing is enabled
+
     // and the map
     var map;
     var mapElement = document.getElementById('home_locations_map');
@@ -185,6 +195,7 @@ function setHomeLocationMap() {
         icon: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
         title: name
     });
+    */
 }
 
 function setupMapAsPicker(map) {
@@ -541,8 +552,11 @@ function saveLocationShareEdits() {
                 var tableRow = tableElement.tBodies[0].children[i];
                 var idData = splitId(tableRow);
                 // get the raw lat and lon to create the location from
+                /*
+                TODO location setting when billing is enabled
                 var latitude = Number(tableRow.querySelector('#location_share_lat_' + idData[1]).value);
                 var longitude = Number(tableRow.querySelector('#location_share_lon_' + idData[1]).value);
+                */
                 // create this row as some data
                 var locationData = firebaseData.defaultLocation(
                     tableRow.querySelector('#location_share_name_' + idData[1]).value,
@@ -550,8 +564,8 @@ function saveLocationShareEdits() {
                     user.uid,
                     tableRow.querySelector('#location_share_ref_' + idData[1]).value,
                     firebaseData.locationTypeMember,
-                    new firebase.firestore.GeoPoint(latitude, longitude),
-                    encodeGeohash([latitude, longitude])
+                    /*new firebase.firestore.GeoPoint(latitude, longitude),
+                    encodeGeohash([latitude, longitude])*/
                 );
                 
                 if (idData[0] === 'new') {
@@ -667,14 +681,17 @@ function onClickAddSharedLocation() {
         var refElement = newRow.querySelector('#location_share_ref');
         var nameElement = newRow.querySelector('#location_share_name');
         var emailElement = newRow.querySelector('#location_share_email');
+        /*
+        TODO location setting when billing is enabled
         var latElement = newRow.querySelector('#location_share_lat');
         var lonElement = newRow.querySelector('#location_share_lon');
-        var locElement = newRow.querySelector('#location_share_location');
+        var locElement = newRow.querySelector('#location_share_location');*/
 
         // set the name and the email to the user's name and email
         nameElement.value = document.getElementById('name').value;
         emailElement.value = document.getElementById('email').value;
 
+        /*
         // try to auto-populate the location values
         firebaseData.getCurrentGeoLocation(function (position) {
             // have the location, set this into the lat and lon elements
@@ -682,21 +699,25 @@ function onClickAddSharedLocation() {
             lonElement.value = position.coords.longitude;
             locElement.innerHTML = position.coords.latitude + ", " + position.coords.longitude;
         });
+        */
 
         // these id's won't be unique as we have taken them from a template and will add repeatedly
         // let's change them to something nice (use the sharedLocationIndex of this new row)
         refElement.id += '_' + sharedLocationIndex;
         nameElement.id += '_' + sharedLocationIndex;
         emailElement.id += '_' + sharedLocationIndex;
-        latElement.id += '_' + sharedLocationIndex;
+        /*latElement.id += '_' + sharedLocationIndex;
         lonElement.id += '_' + sharedLocationIndex;
         locElement.id += '_' + sharedLocationIndex;
+        */
                 
         listenForChange(refElement, function() {setShareLocationFlag(true)});
         listenForChange(nameElement, function() {setShareLocationFlag(true)});
         listenForChange(emailElement, function() {setShareLocationFlag(true)});
+        /*
         listenForChange(latElement, function() {setShareLocationFlag(true)});
         listenForChange(lonElement, function() {setShareLocationFlag(true)});
+        */
         // and add this to the table
         tableElement.tBodies[0].appendChild(newRow);
         // this changes the data
@@ -727,10 +748,14 @@ function displayShareLocationTableData() {
         tableElement.style.display = null;
         // clear all the rows
         tableElement.tBodies[0].innerHTML = "";
+
+        /*
+        TODO location setting when billing is enabled
         // and the map
         var map;
         var mapElement = document.getElementById('share_locations_map');
         mapElement.innerHTML = "";
+        */
 
         var rowTemplate = document.getElementById('location_share_location_template_row');
         // and get the data to put in here now
@@ -749,33 +774,35 @@ function displayShareLocationTableData() {
                         var refElement = newRow.querySelector('#location_share_ref');
                         var nameElement = newRow.querySelector('#location_share_name');
                         var emailElement = newRow.querySelector('#location_share_email');
+                        /*TODO location setting when billing is enabled
                         var latElement = newRow.querySelector('#location_share_lat');
                         var lonElement = newRow.querySelector('#location_share_lon');
                         var locElement = newRow.querySelector('#location_share_location');
+                        */
 
                         // these id's won't be unique as we have taken them from a template and will add repeatedly
                         // let's change them to something nice (use the sharedLocationIndex of this new row)
                         refElement.id += '_' + sharedLocationIndex;
                         nameElement.id += '_' + sharedLocationIndex;
                         emailElement.id += '_' + sharedLocationIndex;
-                        latElement.id += '_' + sharedLocationIndex;
+                        /*latElement.id += '_' + sharedLocationIndex;
                         lonElement.id += '_' + sharedLocationIndex;
-                        locElement.id += '_' + sharedLocationIndex;
+                        locElement.id += '_' + sharedLocationIndex;*/
                         
                         // set the data on these elements
                         refElement.value = data['reference'];
                         nameElement.value = data['user_name'];
                         emailElement.value = data['user_email'];
-                        latElement.value = data['location'].latitude;
+                        /*latElement.value = data['location'].latitude;
                         lonElement.value = data['location'].longitude;
-                        locElement.innerHTML = data['location'].latitude + ", " + data['location'].longitude;
+                        locElement.innerHTML = data['location'].latitude + ", " + data['location'].longitude;*/
 
                         // and listen to them
                         listenForChange(refElement, function() {setShareLocationFlag(true)});
                         listenForChange(nameElement, function() {setShareLocationFlag(true)});
                         listenForChange(emailElement, function() {setShareLocationFlag(true)});
-                        listenForChange(latElement, function() {setShareLocationFlag(true)});
-                        listenForChange(lonElement, function() {setShareLocationFlag(true)});
+                        /*listenForChange(latElement, function() {setShareLocationFlag(true)});
+                        listenForChange(lonElement, function() {setShareLocationFlag(true)});*/
 
                         // and add this to the table
                         tableElement.tBodies[0].appendChild(newRow);
