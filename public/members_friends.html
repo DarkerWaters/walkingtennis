@@ -89,6 +89,16 @@
 	</div>
 	<div id="firebaseui-auth-container"></div>
 
+	<!-- the message box to send a message to a friend-->
+	<div id="message_container" class="message_box" style="display: none;">
+		<a href="javascript:hideMessageContainer();" class="button special">x</a>
+		<span class="image half"><img src="images/branding/logos/full_logo_fill_512.png" alt="" /></span>
+		<h2 style="color: #FFF9F1;">Send a message to <span id='message_dest_name'></span></h2>
+		<p id='message_dest_uid' style="display: none;"></p>
+		<textarea name="message_content" id="message_content" placeholder="" rows="3" style="background-color: #FFF9F1;"></textarea>
+		<a class="button special" id='message_send'>Send...</a>
+	</div>
+
 	<!-- Main -->
 	<section id="main" class="wrapper style1">
 		<div class="container">
@@ -116,6 +126,7 @@
 							<li style="display: none;"><b>UID: </b><span id="template_found_uid">UID of friend</span></li>
 						</ul>
 						<a class="button" id='template_friend_button'>Add Friend</a>
+						<a class="button" id='template_message_button'>Message</a>
 					</div>
 				</div>
 
@@ -133,6 +144,7 @@
 				<h2>Friends</h2>
 				<p>Friends you are connected to...</p>
 				<a class="button" id='previous_friends' onclick='showPreviousFriends()'>Previous</a>
+				<span class="button_matching" id='page_span' >Page 0</span>
 				<a class="button" id='next_friends' onclick='showNextFriends()'>Next</a>
 			</header>
 			<hr>

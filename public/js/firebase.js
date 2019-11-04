@@ -254,6 +254,30 @@ var sanitizeHTML = function (str) {
 	return temp.innerHTML;
 };
 
+var hideMessageContainer = function() {
+    var messageBox = document.getElementById('message_container');
+    if (messageBox) {
+        messageBox.style.display = 'none';
+        messageBox.querySelector('#message_content').value = "";
+    }
+}
+
+var showMessageContainer = function(friendName, friendUid, onSendSuccess, onSendFailure) {
+    var messageBox = document.getElementById('message_container');
+    if (messageBox) {
+        messageBox.style.display = null;
+        messageBox.querySelector('#message_dest_name').innerHTML = friendName;
+        messageBox.querySelector('#message_dest_uid').innerHTML = friendUid;
+        var messageContent = messageBox.querySelector('#message_content');
+        messageContent.focus();
+
+        // handle the button press
+        messageBox.querySelector('#message_send').onclick = function() {
+            firebaseData.sendMessage(friendUid, messageContent.value, onSendSuccess, onSendFailure);
+            hideMessageContainer();
+        };
+    }
+}
 
 const firebaseData = {
 
@@ -263,6 +287,7 @@ const firebaseData = {
     collectionLessonPlans : 'lesson_plans',
     collectionCoachingLessons : 'coaching_lessons',
     collectionUserFriends: 'friends',
+    collectionUserMessages : 'messages',
     collectionLessonContents: 'contents',
 
     locationTypeMember : 'member',
@@ -392,6 +417,16 @@ const firebaseData = {
         });
     },
 
+    defaultMessage : function(messageContent) {
+        var currentUser = this.getUser();
+        return firebaseData.autoCompleteData({
+            from: currentUser ? currentUser.uid : 'unknown',
+            from_name: currentUser ? currentUser.displayName : 'unknown',
+            message: messageContent,
+            is_read: false,
+        });
+    },
+
     autoCompleteData : function(docData) {
         // complete the data on this object, first remove spaces and lower case the name for searching
         var wordsArray = []
@@ -420,8 +455,10 @@ const firebaseData = {
         if (docData.user_name) {
             wordsArray = wordsArray.concat(firebaseData.lcWords(docData.user_name));
         }
-        // set this data
-        docData.words = wordsArray;
+        if (wordsArray.length > 0) {
+            // set this data
+            docData.words = wordsArray;
+        }
         // add the last update performed
         var currentUser = this.getUser();
         docData.last_update = new Date();
@@ -558,6 +595,22 @@ const firebaseData = {
         return firebaseUserData['isAdmin'];
     },
 
+    sendMessage(destinationUid, messageContent, onSuccess, onFailure) {
+        firebase.firestore()
+            .collection(firebaseData.collectionUsers)
+            .doc(destinationUid)
+            .collection(firebaseData.collectionUserMessages)
+            .add(this.defaultMessage(messageContent))
+            .then(function(newDocRef) {
+                // this worked
+                onSuccess ?  onSuccess(newDocRef) : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to add the document: ", error);
+            });
+    },
+
     addUserFriend : function(userRef, friendData, onSuccess, onFailure) {
         firebase.firestore()
             .collection(firebaseData.collectionUsers)
@@ -606,10 +659,24 @@ const firebaseData = {
                 });
         }
     },
-
-    updateUserFriend : function(userRef, friendRef, locationUid, locationData, onSuccess, onFailure) {
+    
+    getUserFriend : function(userRef, friendUid, onSuccess, onFailure) {
         var collectionRef = firebaseData.collectionUsers + '/' + userRef + '/' + firebaseData.collectionUserFriends;
-        firebase.firestore().collection(collectionRef).doc(friendRef)
+        // find the friend data that matches the UID of the friend we are looking for
+        firebase.firestore().collection(collectionRef).where("user_uid", "==", friendUid).get()
+            .then(function(querySnapshot) {
+                // this worked
+                onSuccess ?  onSuccess(querySnapshot) : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
+            });
+    },
+
+    updateUserFriend : function(userRef, friendDataRef, locationUid, locationData, onSuccess, onFailure) {
+        var collectionRef = firebaseData.collectionUsers + '/' + userRef + '/' + firebaseData.collectionUserFriends;
+        firebase.firestore().collection(collectionRef).doc(friendDataRef)
             .set(this.defaultFriend(locationUid, locationData))
             .then(function() {
                 // this worked
@@ -621,9 +688,9 @@ const firebaseData = {
             });
     },
 
-    deleteUserFriend : function(userRef, friendRef, onSuccess, onFailure) {
+    deleteUserFriend : function(userRef, friendDataRef, onSuccess, onFailure) {
         var collectionRef = firebaseData.collectionUsers + '/' + userRef + '/' + firebaseData.collectionUserFriends;
-        firebase.firestore().collection(collectionRef).doc(friendRef).delete()
+        firebase.firestore().collection(collectionRef).doc(friendDataRef).delete()
             .then(function() {
                 // this worked
                 onSuccess ?  onSuccess() : null;

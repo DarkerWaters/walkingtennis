@@ -56,15 +56,56 @@ function onFriendFound(foundContainer, docId, docData) {
     uidDiv.id = docId + "_uid";
     uidDiv.innerHTML = docData.user_uid;
 
-    // find the button
-    var friendButton = friendDiv.querySelector('#template_friend_button');
-    friendButton.id = docId + "_button";
-    friendButton.onclick = function() {
-        makeFriend(docId, docData);
+    // find the buttons
+    var messageButton = friendDiv.querySelector('#template_message_button');
+    messageButton.id = docId + "_message";
+    messageButton.onclick = function() {
+        messageFriend(docData.name, docData.user_uid);
     };
 
-    // and add to the container
-    foundContainer.appendChild(friendDiv);
+    var friendButton = friendDiv.querySelector('#template_friend_button');
+    friendButton.id = docId + "_button";
+    var user = firebaseData.getUser();
+    if (user) {
+        if (user.uid == docData.user_uid) {
+            // this is ourselves, don't show this
+            console.log('found ourselves');
+        }
+        else {
+            // the button should say to make a friend, only when they are not already
+            firebaseData.getUserFriend(user.uid, docData.user_uid,
+                function(querySnapshot) {
+                    // found this friend data
+                    if (querySnapshot.empty) {
+                        // this is no friend ATM, show the button as making a friend
+                        friendButton.onclick = function() {
+                            makeFriend(friendDiv, docId, docData);
+                        };
+                    }
+                    else {
+                        // this is already a friend ATM, show this instead
+                        friendButton.innerHTML = "Already a Friend";
+                        friendButton.classList.add("special");
+                        // get the first actual doc id of the friend data already existing for this data
+                        querySnapshot.forEach(function(doc) {
+                            // for each document found - there should only be one, map the button action properly
+                            friendButton.onclick = function() {
+                                var friendShown = document.getElementById(doc.id);
+                                if (friendShown) {
+                                    friendShown.scrollIntoView();
+                                }
+                            };
+                        })
+                    }
+                    // and add to the container
+                    foundContainer.appendChild(friendDiv);
+                },
+                function(error) {
+                    // oops
+                    console.log("failed to get if this is already a friend or not", error);
+                });
+        }
+    }
 }
 
 function displayFriend(docId, docData, isScrollToShow) {
@@ -85,7 +126,13 @@ function displayFriend(docId, docData, isScrollToShow) {
     uidDiv.id = docId + "_uid";
     uidDiv.innerHTML = docData.user_uid;
 
-    // find the button
+    // find the buttons
+    var messageButton = friendDiv.querySelector('#template_message_button');
+    messageButton.id = docId + "_message";
+    messageButton.onclick = function() {
+        messageFriend(docData.name, docData.user_uid);
+    };
+
     var friendButton = friendDiv.querySelector('#template_friend_button');
     friendButton.id = docId + "_button";
     friendButton.innerHTML = "Remove"
@@ -100,17 +147,24 @@ function displayFriend(docId, docData, isScrollToShow) {
     }
 }
 
-function makeFriend(foundDataUid, foundData) {
+function makeFriend(friendDiv, foundDataUid, foundData) {
     // attach to this friend by remembering the UID in our user's data
     var user = firebaseData.getUser();
     if (user) {
         var newFriend = firebaseData.defaultFriend(foundDataUid, foundData);
         firebaseData.addUserFriend(user.uid, newFriend,
             function(docRef) {
-                // added!
+                // added, remove from the list of found
+                friendDiv.parentElement.removeChild(friendDiv);
+                // and display in the friends list
                 displayFriend(docRef.id, newFriend, true);
             }, null);
     }
+}
+
+function messageFriend(friendName, friendUid) {
+    // send a message to this friend
+    showMessageContainer(friendName, friendUid);
 }
 
 function deleteFriend(friendDiv, friendDataUid) {
@@ -157,6 +211,7 @@ function showActiveFriendsPage() {
         // there isn't one yet for this page, push one now
         friendPageStarters.push(null);
     }
+    document.getElementById('page_span').innerHTML = "Page " + currentFriendPage;
     // and get this data to show it
     firebaseData.getUserFriends(user.uid, lastPageDoc,
         function(querySnapshot) {

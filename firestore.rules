@@ -34,6 +34,12 @@ service cloud.firestore {
     	return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.expiry_coach == null ||
       			 get(/databases/$(database)/documents/users/$(request.auth.uid)).data.expiry_coach > request.time;
     }
+    // Allow public write access to messages, but only users can read them
+    match /users/{userId}/messages/{documents=**} {
+	    allow read, delete: if isRequestingUser(userId) || isAdmin();
+      // allow members to push a message to a user
+      allow create: if isMember();
+    }
     // Allow public read access to user data, but only content owners can write
     match /users/{userId}/{documents=**} {
 	    allow read, delete: if isRequestingUser(userId) || isAdmin();
