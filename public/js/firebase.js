@@ -555,6 +555,15 @@ const firebaseData = {
             })
             batch.commit()
         });
+        // get all the user's messages in the collection and delete them all
+        var batch = firebase.firestore().batch();
+        var collectionRef = firebaseData.collectionUsers + '/' + user.uid + '/' + firebaseData.collectionUserMessages;
+        firebase.firestore().collection(collectionRef).listDocuments().then(val => {
+            val.map((val) => {
+                batch.delete(val)
+            })
+            batch.commit()
+        });
         // and delete the user document we have stored
         firebase.firestore().collection(this.collectionUsers).doc(user.uid).delete().then(function() {
             logout();
