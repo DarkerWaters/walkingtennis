@@ -6,7 +6,7 @@
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 	<meta name="description" content="" />
 	<meta name="keywords" content="" />
-	<title>Walking Tennis Friends</title>
+	<title>Walking Tennis Messages</title>
 
 	<!-- update the version number as needed -->
 	<script defer src="/__/firebase/7.0.0/firebase-app.js"></script>
@@ -108,29 +108,43 @@
 				<p>Communicate with fellow WkTA members here...</p>
 			</header>
 			<!-- a hidden row for the template to reside in-->
-			<div class="row uniform" style="display: none;">
-				<div class="4u 12u(3)" id='template_found_friend'>
+			<div class="row uniform" id='template_message' style="display: none;">
+				<div class="4u 12u(3)">
 					<ul style="list-style-type:none">
-						<li><b>Name: </b><span id="template_found_name">Name of friend</span></li>
-						<li><b>Email: </b><span id="template_found_email">Email of friend</span></li>
-						<li style="display: none;"><b>UID: </b><span id="template_found_uid">UID of friend</span></li>
+						<li><b>From: </b><span id="template_message_from">Name of sender</span></li>
+						<li style="display: none;"><b>UID: </b><span id="template_message_from_uid">UID of sender</span></li>
+						<li><span id="template_message_when">Sometime</span></li>
 					</ul>
-					<a class="button" id='template_friend_button'>Add Friend</a>
-					<a class="button" id='template_message_button'>Message</a>
+					<a class="button" id='template_message_delete_button'>Delete</a>
+					<a class="button" id='template_message_reply_button'>Reply</a>
+				</div>
+				<div class="6u 12u(3)">
+					<h3>Message Content:</h3>
+					<p id="template_message_content">Content of message</p>
+				</div>
+				<div class="2u 12u(3)">
+					<a class="button special" id='template_message_read'>!</a>
 				</div>
 			</div>
 			<div class="container">
 				<div class="row uniform">
-					<div class="12u 12u(3)">
-						<a class="button" id='previous_friends' onclick='showPreviousFriends()'>Previous</a>
+					<div class="4u 12u(3)">
+						<a class="button" id='previous_messages' onclick='showPreviousMessages()'>Previous</a>
 						<span class="button_matching" id='page_span' >Page 0</span>
-						<a class="button" id='next_friends' onclick='showNextFriends()'>Next</a>
+						<a class="button" id='next_messages' onclick='showNextMessages()'>Next</a>
+						<a class="button" id='refresh_messages' onclick='showActiveMessagesPage()'>Refresh</a>
+					</div>
+					<div class="4u 12u(3)">
+						<!-- empty cell for spacing-->
+					</div>
+					<div class="4u 12u(3)">
+						<a class="button" id='new_messages' onclick="location.href = 'members_friends.html#friends_connected'">New Conversation</a>
 					</div>
 				</div>
-				<hr>
-				<div class="row uniform" id='friends_container'>
-					<!-- this is where the friends found will appear-->
-				</div>
+			</div>
+			<hr>
+			<div class="container" id='messages_container'>
+				<!-- this is where the messages found will appear-->
 			</div>
 		</div>
 	</section>

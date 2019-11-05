@@ -619,6 +619,67 @@ const firebaseData = {
                 onFailure ? onFailure(error) : console.log("Failed to add the document: ", error);
             });
     },
+    
+    getUserMessages : function(userRef, lastMessage, onSuccess, onFailure) {
+        var collectionRef = firebaseData.collectionUsers + '/' + userRef + '/' + firebaseData.collectionUserMessages;
+        if (lastMessage) {
+            firebase.firestore().collection(collectionRef)
+                .orderBy("is_read")
+                .orderBy("last_update", 'desc')
+                .startAfter(lastMessage)
+                .limit(25)
+                .get()
+                .then(function(querySnapshot) {
+                    // this worked
+                    onSuccess ?  onSuccess(querySnapshot) : null;
+                })
+                .catch(function(error) {
+                    // this didn't work
+                    onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
+                });
+        }
+        else {
+            firebase.firestore().collection(collectionRef)
+                .orderBy("is_read")
+                .orderBy("last_update", 'desc')
+                .limit(25)
+                .get()
+                .then(function(querySnapshot) {
+                    // this worked
+                    onSuccess ?  onSuccess(querySnapshot) : null;
+                })
+                .catch(function(error) {
+                    // this didn't work
+                    onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
+                });
+        }
+    },
+
+    deleteUserMessage : function(userRef, messageDataRef, onSuccess, onFailure) {
+        var collectionRef = firebaseData.collectionUsers + '/' + userRef + '/' + firebaseData.collectionUserMessages;
+        firebase.firestore().collection(collectionRef).doc(messageDataRef).delete()
+            .then(function() {
+                // this worked
+                onSuccess ?  onSuccess() : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to delete the document: ", error);
+            });
+    },
+
+    readUserMessage : function(userRef, messageDataRef, isRead, onSuccess, onFailure) {
+        var collectionRef = firebaseData.collectionUsers + '/' + userRef + '/' + firebaseData.collectionUserMessages;
+        firebase.firestore().collection(collectionRef).doc(messageDataRef).update({is_read : isRead})
+            .then(function() {
+                // this worked
+                onSuccess ?  onSuccess() : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to update the document: ", error);
+            });
+    },
 
     addUserFriend : function(userRef, friendData, onSuccess, onFailure) {
         firebase.firestore()

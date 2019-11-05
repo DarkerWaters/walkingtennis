@@ -143,7 +143,7 @@ function displayFriend(docId, docData, isScrollToShow) {
     // and add to the container
     container.appendChild(friendDiv);
     if (isScrollToShow) {
-        //friendDiv.scrollIntoView();
+        friendDiv.scrollIntoView();
     }
 }
 

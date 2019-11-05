@@ -1,236 +1,162 @@
-
 var lastFound = null;
-var friendPageStarters = [];
-var currentFriendPage = 0;
+var messagePageStarters = [];
+var currentMessagePage = 0;
 
-function findByName() {
-    var foundContainer = document.getElementById('found_friends_container');
-    // find all the users with the specified name
-    var searchTerm = document.getElementById('search_text').value;
-    
-    // clear all the old data
-    clearFindData();
-
-    // and find the new stuff
-    searchForWord(searchTerm, foundContainer);
-}
-
-function clearFindData() {
-    // clear the data associated with finding friends
-    lastFound = null;
-    document.getElementById('found_friends_container').innerHTML = "";
-    document.getElementById('search_text').value = "";
-}
-
-function searchForWord(searchTerm, foundContainer) {
-    firebaseData.searchCollectionForWord(firebaseData.collectionLocations, searchTerm, lastFound,
-        function(querySnapshot) {
-            // success, add all to the HTML
-            querySnapshot.forEach(function (doc) {
-                // remember this for the next search
-                lastFound = doc;
-                // show each of these found documents in the HTML
-                onFriendFound(foundContainer, doc.id, doc.data())
-            });
-        },
-        function (error) {
-            // failed
-            console.log('searching failed: ', error);
-        });
-}
-
-function onFriendFound(foundContainer, docId, docData) {
+function displayMessage(docId, docData, isScrollToShow) {
+    var container = document.getElementById('messages_container');
     // create the template
-    var friendDiv = document.getElementById('template_found_friend').cloneNode(true);
-    friendDiv.id = docId;
+    var messageDiv = document.getElementById('template_message').cloneNode(true);
+    messageDiv.id = docId;
+    messageDiv.style.display = null;
     // set the data
-    var nameDiv = friendDiv.querySelector('#template_found_name');
+    var nameDiv = messageDiv.querySelector('#template_message_from');
     nameDiv.id = docId + "_name";
-    nameDiv.innerHTML = docData.user_name;
+    nameDiv.innerHTML = docData.from_name;
     // email
-    var emailDiv = friendDiv.querySelector('#template_found_email');
-    emailDiv.id = docId + "_email";
-    emailDiv.innerHTML = docData.user_email;
+    var contentDiv = messageDiv.querySelector('#template_message_content');
+    contentDiv.id = docId + "_content";
+    contentDiv.innerHTML = docData.message;
     // hidden UID
-    var uidDiv = friendDiv.querySelector('#template_found_uid');
+    var uidDiv = messageDiv.querySelector('#template_message_from_uid');
     uidDiv.id = docId + "_uid";
-    uidDiv.innerHTML = docData.user_uid;
-
-    // find the buttons
-    var messageButton = friendDiv.querySelector('#template_message_button');
-    messageButton.id = docId + "_message";
-    messageButton.onclick = function() {
-        messageFriend(docData.name, docData.user_uid);
-    };
-
-    var friendButton = friendDiv.querySelector('#template_friend_button');
-    friendButton.id = docId + "_button";
-    var user = firebaseData.getUser();
-    if (user) {
-        if (user.uid == docData.user_uid) {
-            // this is ourselves, don't show this
-            console.log('found ourselves');
-        }
-        else {
-            // the button should say to make a friend, only when they are not already
-            firebaseData.getUserFriend(user.uid, docData.user_uid,
-                function(querySnapshot) {
-                    // found this friend data
-                    if (querySnapshot.empty) {
-                        // this is no friend ATM, show the button as making a friend
-                        friendButton.onclick = function() {
-                            makeFriend(friendDiv, docId, docData);
-                        };
-                    }
-                    else {
-                        // this is already a friend ATM, show this instead
-                        friendButton.innerHTML = "Already a Friend";
-                        friendButton.classList.add("special");
-                        // get the first actual doc id of the friend data already existing for this data
-                        querySnapshot.forEach(function(doc) {
-                            // for each document found - there should only be one, map the button action properly
-                            friendButton.onclick = function() {
-                                var friendShown = document.getElementById(doc.id);
-                                if (friendShown) {
-                                    friendShown.scrollIntoView();
-                                }
-                            };
-                        })
-                    }
-                    // and add to the container
-                    foundContainer.appendChild(friendDiv);
-                },
-                function(error) {
-                    // oops
-                    console.log("failed to get if this is already a friend or not", error);
-                });
-        }
+    uidDiv.innerHTML = docData.from;
+    // when
+    var whenDiv = messageDiv.querySelector('#template_message_when');
+    whenDiv.id = docId + "_when";
+    var messageDate = docData.last_update.toDate();
+    if (messageDate) {
+        whenDiv.innerHTML = messageDate.toLocaleString();
     }
-}
-
-function displayFriend(docId, docData, isScrollToShow) {
-    var container = document.getElementById('friends_container');
-    // create the template
-    var friendDiv = document.getElementById('template_found_friend').cloneNode(true);
-    friendDiv.id = docId;
-    // set the data
-    var nameDiv = friendDiv.querySelector('#template_found_name');
-    nameDiv.id = docId + "_name";
-    nameDiv.innerHTML = docData.name;
-    // email
-    var emailDiv = friendDiv.querySelector('#template_found_email');
-    emailDiv.id = docId + "_email";
-    emailDiv.innerHTML = docData.email;
-    // hidden UID
-    var uidDiv = friendDiv.querySelector('#template_found_uid');
-    uidDiv.id = docId + "_uid";
-    uidDiv.innerHTML = docData.user_uid;
+    else {
+        whenDiv.style.display = 'none';
+    }
 
     // find the buttons
-    var messageButton = friendDiv.querySelector('#template_message_button');
-    messageButton.id = docId + "_message";
-    messageButton.onclick = function() {
-        messageFriend(docData.name, docData.user_uid);
+    var deleteButton = messageDiv.querySelector('#template_message_delete_button');
+    deleteButton.id = docId + "_delete";
+    deleteButton.onclick = function() {
+        deleteMessage(docId, messageDiv);
     };
 
-    var friendButton = friendDiv.querySelector('#template_friend_button');
-    friendButton.id = docId + "_button";
-    friendButton.innerHTML = "Remove"
-    friendButton.onclick = function() {
-        deleteFriend(friendDiv, docId);
+    var replyButton = messageDiv.querySelector('#template_message_reply_button');
+    replyButton.id = docId + "_reply";
+    replyButton.onclick = function() {
+        replyToFriend(docData.from_name, docData.from);
     };
+
+    var readButton = messageDiv.querySelector('#template_message_read');
+    readButton.id = docId + "_read";
+    setReadButton(docId, readButton, docData.is_read);
 
     // and add to the container
-    container.appendChild(friendDiv);
+    container.appendChild(messageDiv);
     if (isScrollToShow) {
-        //friendDiv.scrollIntoView();
+        messageDiv.scrollIntoView();
     }
 }
 
-function makeFriend(friendDiv, foundDataUid, foundData) {
-    // attach to this friend by remembering the UID in our user's data
-    var user = firebaseData.getUser();
-    if (user) {
-        var newFriend = firebaseData.defaultFriend(foundDataUid, foundData);
-        firebaseData.addUserFriend(user.uid, newFriend,
-            function(docRef) {
-                // added, remove from the list of found
-                friendDiv.parentElement.removeChild(friendDiv);
-                // and display in the friends list
-                displayFriend(docRef.id, newFriend, true);
-            }, null);
+function setReadButton(docId, readButton, isRead) {
+    if (isRead) {
+        //readButton.innerHTML = "un-read";
+        readButton.classList.remove('special');
+        readButton.onclick = function() {
+            setMessageAsRead(docId, readButton, false);
+        };
+    }
+    else {
+        //readButton.innerHTML = "Read";
+        readButton.classList.add('special');
+        readButton.onclick = function() {
+            setMessageAsRead(docId, readButton, true);
+        };
     }
 }
 
-function messageFriend(friendName, friendUid) {
+function replyToFriend(friendName, friendUid) {
     // send a message to this friend
     showMessageContainer(friendName, friendUid);
 }
 
-function deleteFriend(friendDiv, friendDataUid) {
-    // attach to this friend by remembering the UID in our user's data
+function deleteMessage(messageUid, messageDiv) {
+    // delete this message
     var user = firebaseData.getUser();
     if (user) {
-        firebaseData.deleteUserFriend(user.uid, friendDataUid,
+        firebaseData.deleteUserMessage(user.uid, messageUid,
             function() {
-                // removed!
-                friendDiv.parentElement.removeChild(friendDiv);
-            }, null);
+                // this worked, remove this message from the display of messages
+                if (messageDiv && messageDiv.parentElement) {
+                    messageDiv.parentElement.removeChild(messageDiv);
+                }
+            });
     }
 }
 
-function showNextFriends() {
-    // show the next page of friends
-    if (currentFriendPage > 0 && !friendPageStarters[currentFriendPage]) {
-        // we are not on page zero, but there is no starter, run out of friends!
-        console.log('no more friends here');
-        currentFriendPage = 1;
+function setMessageAsRead(messageUid, readButton, isRead) {
+    // delete this message
+    var user = firebaseData.getUser();
+    if (user) {
+        firebaseData.readUserMessage(user.uid, messageUid, isRead,
+            function() {
+                // this worked, remove this the read button 
+                if (readButton) {
+                    setReadButton(messageUid, readButton, isRead);
+                }
+            });
+    }
+}
+
+function showNextMessages() {
+    // show the next page of messages
+    if (currentMessagePage > 0 && !messagePageStarters[currentMessagePage]) {
+        // we are not on page zero, but there is no starter, run out of messages!
+        console.log('no more messages here');
+        currentMessagePage = 1;
     }
     else {
-        ++currentFriendPage;
+        ++currentMessagePage;
     }
-    showActiveFriendsPage();
+    showActiveMessagesPage();
 }
 
-function showPreviousFriends() {
-    // show the previous page of friends
-    if (currentFriendPage > 1) {
-        --currentFriendPage;
+function showPreviousMessages() {
+    // show the previous page of messages
+    if (currentMessagePage > 1) {
+        --currentMessagePage;
     }
     else {
-        console.log('no more friends here - back to page one');
+        console.log('no more messages here - back to page one');
     }
-    showActiveFriendsPage();
+    showActiveMessagesPage();
 }
 
-function showActiveFriendsPage() {
-    document.getElementById('friends_container').innerHTML = "";
+function showActiveMessagesPage() {
+    document.getElementById('messages_container').innerHTML = "";
     var user = firebaseData.getUser();
     // and show this data
-    var lastPageDoc = friendPageStarters[currentFriendPage - 1];
-    if (currentFriendPage >= friendPageStarters.length) {
+    var lastPageDoc = messagePageStarters[currentMessagePage - 1];
+    if (currentMessagePage >= messagePageStarters.length) {
         // there isn't one yet for this page, push one now
-        friendPageStarters.push(null);
+        messagePageStarters.push(null);
     }
-    document.getElementById('page_span').innerHTML = "Page " + currentFriendPage;
+    document.getElementById('page_span').innerHTML = "Page " + currentMessagePage;
     // and get this data to show it
-    firebaseData.getUserFriends(user.uid, lastPageDoc,
+    firebaseData.getUserMessages(user.uid, lastPageDoc,
         function(querySnapshot) {
             if (querySnapshot.empty) {
                 // nothing to show on this new page, go back a page
-                if (currentFriendPage > 1) {
-                    --currentFriendPage;
+                if (currentMessagePage > 1) {
+                    --currentMessagePage;
                     // show this new page
-                    showActiveFriendsPage();
+                    showActiveMessagesPage();
                 }
             }
             else {
-                // show all the friends
+                // show all the messages
                 querySnapshot.forEach(function (doc) {
                     // remember this last doc for the page
-                    friendPageStarters[currentFriendPage] = doc;
-                    // show the friends we have
-                    displayFriend(doc.id, doc.data(), false);
+                    messagePageStarters[currentMessagePage] = doc;
+                    // show the messages we have
+                    displayMessage(doc.id, doc.data(), false);
                 });
             }
         }, null);
@@ -240,10 +166,10 @@ function populateUserData() {
     // fill this page with our data now
     var user = firebaseData.getUser();
     if (user) {
-        friendPageStarters = [null];
-        currentFriendPage = 0;
-        // yey, so we can get the friends now
-        showNextFriends();
+        messagePageStarters = [null];
+        currentMessagePage = 0;
+        // yey, so we can get the messages now
+        showNextMessages();
     }
 }
 
