@@ -6,7 +6,7 @@
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 	<meta name="description" content="" />
 	<meta name="keywords" content="" />
-	<title>Walking Tennis Profile</title>
+	<title>Walking Tennis Friends</title>
 
 	<!-- update the version number as needed -->
 	<script defer src="/__/firebase/7.0.0/firebase-app.js"></script>
@@ -23,7 +23,8 @@
 	<script defer src="/__/firebase/init.js"></script>
 
 	<!-- add our page specific javascript here -->
-	<script src="pagejs/admin_users.js"></script>
+	<script src="js/geofire.js"></script>
+	<script src="pagejs/members_messages.js"></script>
 
 	<!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
 	<script src="js/jquery.min.js"></script>
@@ -89,74 +90,61 @@
 	</div>
 	<div id="firebaseui-auth-container"></div>
 
+	<!-- the message box to send a message to a friend-->
+	<div id="message_container" class="message_box" style="display: none;">
+		<a href="javascript:hideMessageContainer();" class="button special">x</a>
+		<span class="image half"><img src="images/branding/logos/full_logo_fill_512.png" alt="" /></span>
+		<h2 style="color: #FFF9F1;">Send a message to <span id='message_dest_name'></span></h2>
+		<p id='message_dest_uid' style="display: none;"></p>
+		<textarea name="message_content" id="message_content" placeholder="" rows="3" style="background-color: #FFF9F1;"></textarea>
+		<a class="button special" id='message_send'>Send...</a>
+	</div>
+
 	<!-- Main -->
 	<section id="main" class="wrapper style1">
 		<div class="container">
 			<header class="major">
-				<h4>Administer Users</h4>
-				<p>A remote control over your users, for more functionality go to the <a href="https://console.firebase.google.com/">firebase</a> console...</p>
+				<h2>Walking Tennis Messages</h2>
+				<p>Communicate with fellow WkTA members here...</p>
 			</header>
-			<form id='data_form' method="post" action="onPostData()">
-				<header class="major">
-					<h3>User Search</h3>
-				</header>
+			<!-- a hidden row for the template to reside in-->
+			<div class="row uniform" style="display: none;">
+				<div class="4u 12u(3)" id='template_found_friend'>
+					<ul style="list-style-type:none">
+						<li><b>Name: </b><span id="template_found_name">Name of friend</span></li>
+						<li><b>Email: </b><span id="template_found_email">Email of friend</span></li>
+						<li style="display: none;"><b>UID: </b><span id="template_found_uid">UID of friend</span></li>
+					</ul>
+					<a class="button" id='template_friend_button'>Add Friend</a>
+					<a class="button" id='template_message_button'>Message</a>
+				</div>
+			</div>
+			<div class="container">
 				<div class="row uniform">
-					<div class="4u 12u(3)">
-						<input type="text" name="name" id="name" value="" placeholder="Name" />
-						<label for="name">Name</label>
-						<a class="button special" id='search_name_button' onclick="searchUserNames();">Find...</a>
-					</div>
-					<div class="4u 12u(3)">
-						<input type="email" name="email" id="email" value="" placeholder="Email" />
-						<label for="email">Email</label>
-						<a class="button special" id='search_email_button' onclick="searchUserEmails();">Find...</a>
-					</div>
-					<div class="4u 12u(3)">
-						<a class="button special" id='search_admin_button' onclick="getAllAdministrator();">Find all Administrators</a>
+					<div class="12u 12u(3)">
+						<a class="button" id='previous_friends' onclick='showPreviousFriends()'>Previous</a>
+						<span class="button_matching" id='page_span' >Page 0</span>
+						<a class="button" id='next_friends' onclick='showNextFriends()'>Next</a>
 					</div>
 				</div>
 				<hr>
-				<div style="display: none;">
-					<!-- hidden template area -->
-					<div id="user_template" class="row uniform" >
-						<div class="3u 12u(3)">
-							<h4>Firebase UID</h4>
-							<input type="text" id="user_uid" readonly />
-						</div>
-						<div class="3u 12u(3)">
-							<h4>User Name</h4>
-							<input type="text" id="user_name" readonly />
-						</div>
-						<div class="3u 12u(3)">
-							<h4>User Email</h4>
-							<input type="text" id="user_email" readonly />
-						</div>
-						<div class="3u 12u(3)">
-							<h4>Permissions</h4>
-							<input type="checkbox" id="user_isAdmin" />
-							<label id="user_isAdmin_label" for="user_isAdmin">Is Administrator</label>
-						</div>
-						<span id="user_message"></span>
-					</div>
-					<hr>
+				<div class="row uniform" id='friends_container'>
+					<!-- this is where the friends found will appear-->
 				</div>
-				<div id="found_user_container" class="row uniform">
-					<!-- this area will be totally cleared each time a search for user is performed-->
-				</div>
-			</form>
+			</div>
 		</div>
 	</section>
 
 	<!-- Footer -->
 	<footer id="footer">
 		<ul class="icons">
-			<li><a href="https://twitter.com/https://twitter.com/TODOTwitter" class="icon fa-twitter"><span class="label">Twitter</span></a>
+			<li><a href="https://twitter.com/WalkingTennis" class="icon fa-twitter"><span class="label">Twitter</span></a>
 			</li>
-			<li><a href="https://www.facebook.com/TODOFacebook" class="icon fa-facebook"><span
+			<li><a href="https://www.facebook.com/walkingtennisacademy/" class="icon fa-facebook"><span
 						class="label">Facebook</span></a></li>
-			<li><a href="https://www.instagram.com/TODOInstagram" class="icon fa-instagram"><span
+			<li><a href="https://www.instagram.com/walkingtennisacademy" class="icon fa-instagram"><span
 						class="label">Instagram</span></a></li>
-			<li><a href="https://www.youtube.com/channel/TODOYouTube" class="icon fa-youtube"><span
+			<li><a href="https://www.youtube.com/channel/UCTW0Xa6AtSVrYr9b4u6tWJg" class="icon fa-youtube"><span
 						class="label">YouTube</span></a></li>
 			<li><a href="admincontact.html" class="icon fa-envelope"><span class="label">Envelope</span></a></li>
 		</ul>
@@ -167,7 +155,7 @@
 			<li><a href="admincontact.html">Contact</a></li>
 		</ul>
 		<span class="copyright">
-			&copy; Copyright. All rights reserved. Design by <a href="https://www.darkerwaters.co.uk">Darker Waters LTD</a>
+			&copy; Copyright. All rights reserved. Design by Darker Waters LTD
 		</span>
 	</footer>
 </body>
