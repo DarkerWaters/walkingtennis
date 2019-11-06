@@ -279,9 +279,22 @@ var showMessageContainer = function(friendName, friendUid, onSendSuccess, onSend
     }
 }
 
+function showAlertBox(message) {
+    var messageBox = document.getElementById('alert_box');
+    messageBox.querySelector('#alert_box_content').textContent = message;
+    messageBox.style.display = null;
+    setTimeout(function() { hideAlertBox() }, 5000);
+}
+
+function hideAlertBox(message) {
+    var messageBox = document.getElementById('alert_box');
+    messageBox.style.display = 'none';
+}
+
 const firebaseData = {
 
     collectionUsers : 'users',
+    collectionAdminMessages: 'admin_messages',
     collectionLessons : 'lessons',
     collectionLocations : 'locations',
     collectionLessonPlans : 'lesson_plans',
@@ -422,7 +435,18 @@ const firebaseData = {
         return firebaseData.autoCompleteData({
             from: currentUser ? currentUser.uid : 'unknown',
             from_name: currentUser ? currentUser.displayName : 'unknown',
-            message: messageContent,
+            message: sanitizeHTML(messageContent),
+            is_read: false,
+        });
+    },
+
+    defaultAdminMessage : function(messageContent) {
+        var currentUser = this.getUser();
+        return firebaseData.autoCompleteData({
+            from: currentUser ? currentUser.uid : 'unknown',
+            from_name: currentUser ? currentUser.displayName : 'unknown',
+            from_email: currentUser ? currentUser.email : 'unknown',
+            message: sanitizeHTML(messageContent),
             is_read: false,
         });
     },
@@ -605,19 +629,24 @@ const firebaseData = {
     },
 
     sendMessage(destinationUid, messageContent, onSuccess, onFailure) {
-        firebase.firestore()
-            .collection(firebaseData.collectionUsers)
-            .doc(destinationUid)
-            .collection(firebaseData.collectionUserMessages)
-            .add(this.defaultMessage(messageContent))
-            .then(function(newDocRef) {
-                // this worked
-                onSuccess ?  onSuccess(newDocRef) : null;
-            })
-            .catch(function(error) {
-                // this didn't work
-                onFailure ? onFailure(error) : console.log("Failed to add the document: ", error);
-            });
+        if (messageContent) {
+            firebase.firestore()
+                .collection(firebaseData.collectionUsers)
+                .doc(destinationUid)
+                .collection(firebaseData.collectionUserMessages)
+                .add(this.defaultMessage(messageContent))
+                .then(function(newDocRef) {
+                    // this worked
+                    onSuccess ?  onSuccess(newDocRef) : null;
+                })
+                .catch(function(error) {
+                    // this didn't work
+                    onFailure ? onFailure(error) : console.log("Failed to add the document: ", error);
+                });
+        }
+        else {
+            onFailure ? onFailure(error) : console.log("Not letting them send an empty message");
+        }
     },
     
     getUserMessages : function(userRef, lastMessage, onSuccess, onFailure) {
@@ -671,6 +700,83 @@ const firebaseData = {
     readUserMessage : function(userRef, messageDataRef, isRead, onSuccess, onFailure) {
         var collectionRef = firebaseData.collectionUsers + '/' + userRef + '/' + firebaseData.collectionUserMessages;
         firebase.firestore().collection(collectionRef).doc(messageDataRef).update({is_read : isRead})
+            .then(function() {
+                // this worked
+                onSuccess ?  onSuccess() : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to update the document: ", error);
+            });
+    },
+
+    sendAdminMessage(messageContent, onSuccess, onFailure) {
+        if (messageContent) {
+            firebase.firestore()
+                .collection(firebaseData.collectionAdminMessages)
+                .add(this.defaultAdminMessage(messageContent))
+                .then(function(newDocRef) {
+                    // this worked
+                    onSuccess ?  onSuccess(newDocRef) : null;
+                })
+                .catch(function(error) {
+                    // this didn't work
+                    onFailure ? onFailure(error) : console.log("Failed to add the document: ", error);
+                });
+            }
+        else {
+            onFailure ? onFailure(error) : console.log("Not letting them send an empty message");
+        }
+    },
+    
+    getAdminMessages : function(lastMessage, onSuccess, onFailure) {
+        if (lastMessage) {
+            firebase.firestore().collection(firebaseData.collectionAdminMessages)
+                .orderBy("is_read")
+                .orderBy("last_update", 'desc')
+                .startAfter(lastMessage)
+                .limit(25)
+                .get()
+                .then(function(querySnapshot) {
+                    // this worked
+                    onSuccess ?  onSuccess(querySnapshot) : null;
+                })
+                .catch(function(error) {
+                    // this didn't work
+                    onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
+                });
+        }
+        else {
+            firebase.firestore().collection(firebaseData.collectionAdminMessages)
+                .orderBy("is_read")
+                .orderBy("last_update", 'desc')
+                .limit(25)
+                .get()
+                .then(function(querySnapshot) {
+                    // this worked
+                    onSuccess ?  onSuccess(querySnapshot) : null;
+                })
+                .catch(function(error) {
+                    // this didn't work
+                    onFailure ? onFailure(error) : console.log("Failed to get the collection documents: ", error);
+                });
+        }
+    },
+
+    deleteAdminMessage : function(messageDataRef, onSuccess, onFailure) {
+        firebase.firestore().collection(firebaseData.collectionAdminMessages).doc(messageDataRef).delete()
+            .then(function() {
+                // this worked
+                onSuccess ?  onSuccess() : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to delete the document: ", error);
+            });
+    },
+
+    readAdminMessage : function(messageDataRef, isRead, onSuccess, onFailure) {
+        firebase.firestore().collection(firebaseData.collectionAdminMessages).doc(messageDataRef).update({is_read : isRead})
             .then(function() {
                 // this worked
                 onSuccess ?  onSuccess() : null;

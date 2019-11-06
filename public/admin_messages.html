@@ -6,7 +6,7 @@
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 	<meta name="description" content="" />
 	<meta name="keywords" content="" />
-	<title>Coaching Walking Tennis</title>
+	<title>Walking Tennis Administrator Messages</title>
 
 	<!-- update the version number as needed -->
 	<script defer src="/__/firebase/7.0.0/firebase-app.js"></script>
@@ -23,7 +23,8 @@
 	<script defer src="/__/firebase/init.js"></script>
 
 	<!-- add our page specific javascript here -->
-	<script src="pagejs/extras_coaching.js"></script>
+	<script src="js/geofire.js"></script>
+	<script src="pagejs/admin_messages.js"></script>
 
 	<!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
 	<script src="js/jquery.min.js"></script>
@@ -36,7 +37,7 @@
 	<script src="js/firebase.js"></script>
 	<script src="js/init.js"></script>
 	<link rel="stylesheet" type="text/css" href="css/walking-tennis.css" />
-	
+
 	<noscript>
 		<link rel="stylesheet" href="css/skel.css" />
 		<link rel="stylesheet" href="css/style.css" />
@@ -95,89 +96,54 @@
 		<!--<a href="javascript:hideAlertBox();" class="button" style="height: 30px; width: 30px;">x</a>-->
 	</div>
 
+	<!-- the message box to send a message to a friend-->
+	<div id="message_container" class="message_box" style="display: none;">
+		<a href="javascript:hideMessageContainer();" class="button special">x</a>
+		<span class="image half"><img src="images/branding/logos/full_logo_fill_512.png" alt="" /></span>
+		<h2 style="color: #FFF9F1;">Send a message to <span id='message_dest_name'></span></h2>
+		<p id='message_dest_uid' style="display: none;"></p>
+		<textarea name="message_content" id="message_content" placeholder="" rows="3" style="background-color: #FFF9F1;"></textarea>
+		<a class="button special" id='message_send'>Send...</a>
+	</div>
+
 	<!-- Main -->
 	<section id="main" class="wrapper style1">
 		<div class="container">
 			<header class="major">
-				<h2>Learning to coach Walking Tennis</h2>
-				<p>This is a great starting point for both walking and regular tennis.</p>
+				<h2>Walking Tennis Administration Messages</h2>
 			</header>
-			<div id="not_logged_in" style="display: none">
-				<h2>Sorry but access to this portion of the site is restricted to Coaching members only.</h2>
-				<p>Please log-in to your account to access this page.</p>
+			<!-- a hidden row for the template to reside in-->
+			<div class="row uniform" id='template_message' style="display: none;">
+				<div class="4u 12u(3)">
+					<ul style="list-style-type:none">
+						<li><b>From: </b><span id="template_message_from">Name of sender</span></li>
+						<li style="display: none;"><b>UID: </b><span id="template_message_from_uid">UID of sender</span></li>
+						<li><span id="template_message_when">Sometime</span></li>
+					</ul>
+					<a class="button" id='template_message_delete_button'>Delete</a>
+					<a class="button" id='template_message_reply_button'>Reply</a>
+				</div>
+				<div class="6u 12u(3)">
+					<h3>Message Content:</h3>
+					<p id="template_message_content">Content of message</p>
+				</div>
+				<div class="2u 12u(3)">
+					<a class="button special" id='template_message_read'>!</a>
+				</div>
 			</div>
-			<div id="not_a_coach" style="display: none">
-				<h2>Sorry but your membership does not include coaching</h2>
-				<p>Please go to your <a href="profile.html">profile</a> to update your subscription</p>
-			</div>
-			<div style="display: none">
-				<!-- a hidden div to place the templates to use to create the lesson plan-->
-				<span id="template-lesson-container" class="lesson_container">
-					<a id="template-lesson-button" class="lesson_selector button">Lesson One</a>
-				</span>
-				<span id="template-lesson-progress" class="lesson_container">
-					<a id="lesson-progress-button" class="lesson_progress_selector button">Record Progress</a>
-				</span>
-				<!-- this is the template for an item of lesson content-->
-				<div id="template-lesson-content" >
-					<hr/>
-					<header>
-						<h2 id="lesson_content_heading">title</h3>
-						<p id="lesson_content_subtitle">subtitle</p>
-					</header>
-					<div id="lesson_content_three" style="display: none" class="row">
-						<div id="lesson_content_one_of_three" class="3u 12u(2)">
-							<span id="lesson_content_one_of_three_span" class="image fit" style="z-index: 100"> 
-								<a id="lesson_content_grow_video_three" class="lesson_selector button" onclick="resizeDocumentContent(this, '#lesson_content_video_three', '#lesson_content_three', '#lesson_content_shrink_video_three')">Show Larger</a>
-								<a id="lesson_content_shrink_video_three" style="display: none" class="lesson_selector button" onclick="resizeDocumentContentReset(this, '#lesson_content_video_three', '#lesson_content_three', '#lesson_content_grow_video_three')">Show Smaller</a>		
-								<div class="iframe-container" style="display: none">
-									<iframe id="lesson_content_video_three" class="iframe-fillContainer" src="https://www.youtube.com/embed/tgbNymZ7vqY" frameborder="0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-								</div>
-							</span>
-						</div>
-						<div id="lesson_content_two_of_three" class="3u 12u(2)">
-							<span class="image fit" style="z-index: 40">
-								<img id="lesson_content_image_three" style="display: none" src="images/branding/logos/full_logo_512.png" alt="walking tennis.org" />
-							</span>
-						</div>
-						<div id="lesson_content_three_of_three" class="6u 12u(2)">
-							The textual content goes here
-						</div>
-					</div>
-					<div id="lesson_content_two" style="display: none" class="row">
-						<div id="lesson_content_one_of_two" class="3u 12u(2)">
-							<span class="image fit">
-								<a id="lesson_content_grow_video_two" style="display: none" class="lesson_selector button" onclick="resizeDocumentContent(this, '#lesson_content_video_two,#lesson_content_image_two', '#lesson_content_two', '#lesson_content_shrink_video_two')">Show Larger</a>
-								<a id="lesson_content_shrink_video_two" style="display: none" class="lesson_selector button" onclick="resizeDocumentContentReset(this, '#lesson_content_video_two,#lesson_content_image_two', '#lesson_content_two', '#lesson_content_grow_video_two')">Show Smaller</a>
-								<div class="iframe-container" style="display: none">
-									<iframe id="lesson_content_video_two" class="iframe-fillContainer" src="https://www.youtube.com/embed/tgbNymZ7vqY" frameborder="0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-								</div>
-								<img id="lesson_content_image_two" style="display: none" src="images/branding/logos/full_logo_512.png" alt="walking tennis.org" />
-							</span>
-						</div>
-						<div id="lesson_content_two_of_two" class="9u 12u(2)">
-							The textual content goes here
-						</div>
+			<div class="container">
+				<div class="row uniform">
+					<div class="12u 12u(3)">
+						<a class="button" id='previous_messages' onclick='showPreviousMessages()'>Previous</a>
+						<span class="button_matching" id='page_span' >Page 0</span>
+						<a class="button" id='next_messages' onclick='showNextMessages()'>Next</a>
+						<a class="button" id='refresh_messages' onclick='showActiveMessagesPage()'>Refresh</a>
 					</div>
 				</div>
 			</div>
 			<hr>
-			<div id="lessons">
-				
-			</div>
-			<div id="lesson_content" style="display: none">
-				<hr/>
-				<header class="major">
-					<h2 id='lesson_name'>Title</h2>
-					<p id='lesson_subtitle'>This is the lesson subtitle here.</p>
-					<progress id="progress_display" max="1" value="0.85"></progress>
-				</header>
-				<div id="lesson_progress_container" class="progress_container" >
-					<!-- this is where the progress buttons will go -->
-				</div>
-				<div id="lesson_contents_container">
-					<!-- this is where the contents will be added -->
-				</div>
+			<div class="container" id='messages_container'>
+				<!-- this is where the messages found will appear-->
 			</div>
 		</div>
 	</section>

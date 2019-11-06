@@ -2,6 +2,10 @@
 const functions = require('firebase-functions');
 const fieldValue = require('firebase-admin').firestore.FieldValue;
 
+// let's use some email (terminal command to install was: "npm install nodemailer cors")
+const cors = require('cors')({origin: true});
+const nodemailer = require('nodemailer');
+
 // The Firebase Admin SDK to access the Firebase Realtime Database.
 const admin = require('firebase-admin');
 admin.initializeApp();
@@ -15,6 +19,17 @@ const db = admin.firestore();
 // exports.helloWorld = functions.https.onRequest((request, response) => {
 //  response.send("Hello from Firebase!");
 // });
+
+/**
+* Here we're using Gmail to send 
+*/
+let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'info@walkingtennis.org',
+        pass: '#WTBr15tol!'
+    }
+});
 
 // when a user is created / first sign on, then we want to create the user entry to track their subscriptions etc
 exports.createUserData = functions.auth.user().onCreate((user) => {
@@ -118,4 +133,62 @@ exports.updateAdminRole = functions.firestore
         }
         // return the result of this (0 if done nothing)
         return result;
+    });
+
+// when someone posts a message to the admin place, send us an email to tell us
+exports.forwardAdminMessage = functions.firestore
+    .document('admin_messages/{messageId}')
+    .onWrite((change, context) => {
+        // If we set `/users/marie` to {name: "Marie"} then
+        // context.params.userId == "marie"
+        // ... and ...
+        // change.after.data() == {name: "Marie"}
+        var data = change.after.data();
+        const mailOptions = {
+            from: 'WalkingTennisSite <' + data.from_email + '>', // Something like: Jane Doe <janedoe@gmail.com>
+            to: 'info@walkingtennis.org',
+            subject: 'Redirected message from the website', // email subject
+            html: 'From: ' + data.from + 
+                  '<br>' + data.from_name +
+                  '<br>' + data.from_email +
+                  '<br>' + data.last_update +
+                  '<br><br>' + data.message
+        };
+  
+        // returning result
+        transporter.sendMail(mailOptions, (error, info) => {
+            if(error){
+                console.log('sending email error: ' + error);
+                return 1
+            }
+            return 0
+        });
+        // return the result of this
+        return 0;
+
+        /*cors(req, res, () => {
+            // getting dest email by query string
+            const dest = req.query.dest;
+    
+            const mailOptions = {
+                from: 'Your Account Name <yourgmailaccount@gmail.com>', // Something like: Jane Doe <janedoe@gmail.com>
+                to: dest,
+                subject: 'I\'M A PICKLE!!!', // email subject
+                html: `<p style="font-size: 16px;">Pickle Riiiiiiiiiiiiiiiick!!</p>
+                    <br />
+                    <img src="https://images.prod.meredith.com/product/fc8754735c8a9b4aebb786278e7265a5/1538025388228/l/rick-and-morty-pickle-rick-sticker" />
+                ` // email content in HTML
+            };
+      
+            // returning result
+            return transporter.sendMail(mailOptions, (erro, info) => {
+                if(erro){
+                    return res.send(erro.toString());
+                }
+                return res.send('Sended');
+            });
+        });   
+        // return the result of this (0 if done nothing)
+        return result;
+        */
     });

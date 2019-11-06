@@ -47,6 +47,12 @@ service cloud.firestore {
       allow update : if (noInvalidDataChange() && isRequestingUser(userId)) || isAdmin();
       allow create: if noInvalidDataChange() && isRequestingUser(userId);
     }
+    match /admin_messages/{documents=**} {
+    	// members can send us a message
+      allow create : if isMember();
+      // but only admin can read, delete, update
+    	allow update, delete, read : if isAdmin();
+    }
     match /lesson_plans/{documents=**} {
     	// only allow administrators to create lessons
     	allow update, delete, create : if isAdmin();

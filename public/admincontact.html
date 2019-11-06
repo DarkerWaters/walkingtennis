@@ -23,6 +23,7 @@
 	<script defer src="/__/firebase/init.js"></script>
 
 	<!-- add our page specific javascript here -->
+	<script src="pagejs/admincontact.js"></script>
 
 	<!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
 	<script src="js/jquery.min.js"></script>
@@ -74,6 +75,7 @@
 					<a href="">Admin</a>
 					<ul>
 						<li><a href="admin_users.html">Manage Users</a></li>
+						<li><a href="admin_messages.html">Check Messages</a></li>
 						<li><a href="admin_editLessons.html">Edit Lessons</a></li>
 					</ul>
 				</li>
@@ -88,19 +90,32 @@
 	</div>
 	<div id="firebaseui-auth-container"></div>
 
+	<div id='alert_box' class="alert-box success" style="display: none;">
+		<span id='alert_box_content'>Successful Alert !!</span>
+		<!--<a href="javascript:hideAlertBox();" class="button" style="height: 30px; width: 30px;">x</a>-->
+	</div>
+
 	<!-- Main -->
 	<section id="main" class="wrapper style1">
 		<div class="container">
 			<header class="major">
 				<h2>Contact Walking Tennis</h2>
-				<span class="image left fit"><img src="images/logos/coming_soon.png" alt="coming soon"/></span>
-				<p>There are a series of buttons at the bottom of the page to find us via Facebook, Twitter, Instagram, and You Tube</p>
-				<br/>
-				<br/>
-				<br/>
-				<br/>
-				<p>While we are working on our site, please use our social media avenues. Thank you for your patience</p>
 			</header>
+			<div class="row uniform">
+				<div class="4u 12u(3)">
+					<span class="image fit"><img src="images/pictures/older_group.jpg" alt="playing tennis again" /></span>
+				</div>
+				<div class="8u 12u(3)">
+					<span>There are a series of buttons at the bottom of the page to find us via Facebook, Twitter, Instagram, and You Tube. If you can, check out our social media for news, help, contacts and whatever you are needing.</span>
+					<hr>
+					If you need to contact us through this site, please log-in and you will be able to message an administrator directly...
+					</br>
+					<span id='contact_controls' style="display: none;">
+						<textarea name="message_content" id="message_content" placeholder="" rows="3" style="background-color: #FFF9F1;"></textarea>
+						<a class="button special" id='message_send' onclick='sendAdminMessage()'>Send...</a>
+					</span>
+				</div>
+			</div>
 		</div>
 	</section>
 
