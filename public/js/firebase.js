@@ -351,7 +351,7 @@ const firebaseData = {
             name: user.displayName,
             email: user.email,
             isAdmin: false,
-            lcount_permitted: 5,
+            lcount_permitted: 1,
             lpromotions_permitted: 0,
             isRxEmailFromWkta: true,
             isRxEmailFromPlayers: true,
@@ -378,7 +378,7 @@ const firebaseData = {
             joined_date: fieldValue.serverTimestamp(),
             last_coaching_lesson : null,
             last_members_lesson : null,
-            lcount_permitted : 5,
+            lcount_permitted : 1,
             location : null,
             lpromotions_permitted : 0,
             */

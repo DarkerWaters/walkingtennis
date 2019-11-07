@@ -25,11 +25,19 @@ const db = admin.firestore();
 */
 let transporter = nodemailer.createTransport({
     service: 'gmail',
+    host: 'smtp.gmail.com',
+    secureConnection: true,
+    port: 465,
+    transportMethod: 'SMTP',
     auth: {
         user: 'info@walkingtennis.org',
-        pass: '#WTBr15tol!'
+        pass: 'exmifxcoieuebqbi'
+    },
+    tls: {
+        rejectUnauthorized: false
     }
 });
+
 
 // when a user is created / first sign on, then we want to create the user entry to track their subscriptions etc
 exports.createUserData = functions.auth.user().onCreate((user) => {
@@ -41,7 +49,7 @@ exports.createUserData = functions.auth.user().onCreate((user) => {
         email: user.email,
         email_lc: user.email.toLowerCase(),
         isAdmin: false,
-        lcount_permitted: 5,
+        lcount_permitted: 1,
         lpromotions_permitted: 0,
         isRxEmailFromWkta: true,
         isRxEmailFromPlayers: true,
@@ -135,6 +143,8 @@ exports.updateAdminRole = functions.firestore
         return result;
     });
 
+/*
+
 // when someone posts a message to the admin place, send us an email to tell us
 exports.forwardAdminMessage = functions.firestore
     .document('admin_messages/{messageId}')
@@ -144,51 +154,32 @@ exports.forwardAdminMessage = functions.firestore
         // ... and ...
         // change.after.data() == {name: "Marie"}
         var data = change.after.data();
-        const mailOptions = {
-            from: 'WalkingTennisSite <' + data.from_email + '>', // Something like: Jane Doe <janedoe@gmail.com>
-            to: 'info@walkingtennis.org',
-            subject: 'Redirected message from the website', // email subject
-            html: 'From: ' + data.from + 
-                  '<br>' + data.from_name +
-                  '<br>' + data.from_email +
-                  '<br>' + data.last_update +
-                  '<br><br>' + data.message
-        };
-  
-        // returning result
-        transporter.sendMail(mailOptions, (error, info) => {
-            if(error){
-                console.log('sending email error: ' + error);
-                return 1
-            }
-            return 0
-        });
-        // return the result of this
-        return 0;
-
-        /*cors(req, res, () => {
-            // getting dest email by query string
-            const dest = req.query.dest;
-    
+        if (data) {
             const mailOptions = {
-                from: 'Your Account Name <yourgmailaccount@gmail.com>', // Something like: Jane Doe <janedoe@gmail.com>
-                to: dest,
-                subject: 'I\'M A PICKLE!!!', // email subject
-                html: `<p style="font-size: 16px;">Pickle Riiiiiiiiiiiiiiiick!!</p>
-                    <br />
-                    <img src="https://images.prod.meredith.com/product/fc8754735c8a9b4aebb786278e7265a5/1538025388228/l/rick-and-morty-pickle-rick-sticker" />
-                ` // email content in HTML
+                from: 'WalkingTennisSite <' + data.from_email + '>', // Something like: Jane Doe <janedoe@gmail.com>
+                to: 'info@walkingtennis.org',
+                subject: 'Redirected message from the website', // email subject
+                html: 'From: ' + data.from + 
+                    '<br>' + data.from_name +
+                    '<br>' + data.from_email +
+                    '<br>' + data.last_update +
+                    '<br><br>' + data.message
             };
-      
+    
             // returning result
-            return transporter.sendMail(mailOptions, (erro, info) => {
-                if(erro){
-                    return res.send(erro.toString());
+            transporter.sendMail(mailOptions, (error, info) => {
+                if(error){
+                    console.log('sending email error: ' + error);
+                    return 1
                 }
-                return res.send('Sended');
+                return 0
             });
-        });   
-        // return the result of this (0 if done nothing)
-        return result;
-        */
+            // return the result of this
+            return 0;
+        }
+        else {
+            // return that no data was found
+            return 1;
+        }
     });
+*/

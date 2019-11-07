@@ -133,7 +133,7 @@ function populateUserData() {
         document.getElementById('membership-member').checked = true;
         document.getElementById('membership-coach').checked = false;
         document.getElementById('membership-coach-expiry-input').style.display = 'none';
-        document.getElementById('lcount_permitted').innerHTML = "5";
+        document.getElementById('lcount_permitted').innerHTML = "1";
         document.getElementById('is_share_location').checked = false;
 
         // hide the email verification button if verified already
