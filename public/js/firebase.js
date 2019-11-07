@@ -356,9 +356,8 @@ const firebaseData = {
             isRxEmailFromWkta: true,
             isRxEmailFromPlayers: true,
             isRxEmailFromPartners: true,
-            joined_date: fieldValue.serverTimestamp(),
-            expiry_coach: fieldValue.serverTimestamp(),
-            expiry_member: null
+            joined_date: new Date(),
+            expiry_coach: new Date(),
         });
     },
 
@@ -368,14 +367,14 @@ const firebaseData = {
             email : userEmail,
             // don't create empty data - to prevent over-writing any existing data on the update
             /*
-            expiry_coach: fieldValue.serverTimestamp(),
+            expiry_coach: new Date(),
             expiry_member : null,
             geohash : null,
             isAdmin : false,
             isRxEmailFromPartners : true,
             isRxEmailFromPlayers : true,
             isShareLocations : true,
-            joined_date: fieldValue.serverTimestamp(),
+            joined_date: new Date(),
             last_coaching_lesson : null,
             last_members_lesson : null,
             lcount_permitted : 1,
@@ -535,7 +534,6 @@ const firebaseData = {
                 // failed
                 console.log("failed to create the user data", error);
             });
-        return newUserData;
     },
 
     getUserProfiles : function (user) {

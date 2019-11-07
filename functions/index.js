@@ -1,10 +1,12 @@
+'use strict';
+
 // The Cloud Functions for Firebase SDK to create Cloud Functions and setup triggers.
 const functions = require('firebase-functions');
 const fieldValue = require('firebase-admin').firestore.FieldValue;
 
 // let's use some email (terminal command to install was: "npm install nodemailer cors")
-const cors = require('cors')({origin: true});
-const nodemailer = require('nodemailer');
+/*const cors = require('cors')({origin: true});
+const nodemailer = require('nodemailer');*/
 
 // The Firebase Admin SDK to access the Firebase Realtime Database.
 const admin = require('firebase-admin');
@@ -20,9 +22,15 @@ const db = admin.firestore();
 //  response.send("Hello from Firebase!");
 // });
 
+const stripe = require('stripe')(functions.config().stripe.token);
+const currency = functions.config().stripe.currency || 'USD';
+
+// will need to deploy the string API_KEY with the CLI command
+//firebase functions:config:set stripe.token="sk_test_6fYvLRIXvNvB2BeQVoj92JFw00ItMQ8Fm6"
+
 /**
 * Here we're using Gmail to send 
-*/
+
 let transporter = nodemailer.createTransport({
     service: 'gmail',
     host: 'smtp.gmail.com',
@@ -37,15 +45,18 @@ let transporter = nodemailer.createTransport({
         rejectUnauthorized: false
     }
 });
-
+*/
 
 // when a user is created / first sign on, then we want to create the user entry to track their subscriptions etc
-exports.createUserData = functions.auth.user().onCreate((user) => {
-    // create the skeleton of user data
+exports.createUserData = functions.auth.user().onCreate(async (user) => {
+    // need a stripe customer ID for every user
+    const customer = await stripe.customers.create({email: user.email});
+    // create the skeleton of user data to include this, and all the default data needed
     var newUserData = {
         // setup the blank user data here
         name: user.displayName,
         name_lc: user.displayName.toLowerCase(),
+        customer_id: customer.id,
         email: user.email,
         email_lc: user.email.toLowerCase(),
         isAdmin: false,
@@ -55,7 +66,6 @@ exports.createUserData = functions.auth.user().onCreate((user) => {
         isRxEmailFromPlayers: true,
         isRxEmailFromPartners: true,
         joined_date: fieldValue.serverTimestamp(),
-        expiry_coach: fieldValue.serverTimestamp(),
         expiry_member: null
     };
     db.collection('users').doc(user.uid).set(newUserData, {merge: true})
@@ -72,16 +82,27 @@ exports.createUserData = functions.auth.user().onCreate((user) => {
 });
 
 // when a user is deleted, they are leaving, then we want to say goodbye and also to delete all their stored user data
-exports.deleteUserData = functions.auth.user().onDelete((user) => {
-    // delete all their data, to comply with GDPR
+exports.deleteUserData = functions.auth.user().onDelete(async (user) => {
+    // delete all their data, to comply with GDPR, delete their stripe account from here
+    const snapshot = await db.collection('users').doc(user.uid).get();
+    if (snapshot) {
+        const customer = snapshot.data();
+        if (customer && customer.customer_id) {
+            // delete the stripe customers ID we stored
+            await stripe.customers.del(customer.customer_id);
+        }
+        else {
+            console.log('deleting user without a stripe customer_id to delete');
+        }
+    }
     
     // they may have shared some locations, delete all these
-    firebase.firestore().collection('locations').where("user_uid", "==", user.uid).get()
+    db.collection('locations').where("user_uid", "==", user.uid).get()
         .then(function(querySnapshot) {
             // this worked, delete them all
             querySnapshot.forEach(function (doc) {
                 // for each document, delete the document
-                firebase.firestore().collection('locations').doc(doc.id).delete()
+                db.collection('locations').doc(doc.id).delete()
                     .then(function() {
                         // this worked
                         console.log('deleted user location data for ' + user.uid, doc);
@@ -183,3 +204,63 @@ exports.forwardAdminMessage = functions.firestore
         }
     });
 */
+
+// [START chargecustomer]
+// Charge the Stripe customer whenever an amount is created in Cloud Firestore
+exports.createStripeCharge = functions.firestore.document('users/{userId}/stripe_charges/{id}').onCreate(async (snap, context) => {
+    const val = snap.data();
+    try {
+        // Look up the Stripe customer id written in createStripeCustomer
+        const snapshot = await admin.firestore().collection(`users`).doc(context.params.userId).get()
+        const snapval = snapshot.data();
+        const customer = snapval.customer_id
+        // Create a charge using the pushId as the idempotency key
+        // protecting against double charges
+        const amount = val.amount;
+        const idempotencyKey = context.params.id;
+        const charge = {
+            amount,
+            currency,
+            customer
+        };
+        if (val.source !== null) {
+            charge.source = val.source;
+        }
+        const response = await stripe.charges.create(charge, {
+            idempotency_key: idempotencyKey
+        });
+        // If the result is successful, write it back to the database
+        return snap.ref.set(response, {
+            merge: true
+        });
+    } catch (error) {
+        // We want to capture errors and render them in a user-friendly way, while
+        // still logging an exception with StackDriver
+        console.log(error);
+        return 1;
+    }
+});
+// [END chargecustomer]]
+
+// Add a payment source (card) for a user by writing a stripe payment source token to Cloud Firestore
+exports.addPaymentSource = functions.firestore.document('/users/{userId}/stripe_tokens/{pushId}').onCreate(async (snap, context) => {
+    const source = snap.data();
+    const token = source.token;
+    if (source === null) {
+        return null;
+    }
+
+    try {
+        const snapshot = await admin.firestore().collection('users').doc(context.params.userId).get();
+        const customer = snapshot.data().customer_id;
+        const response = await stripe.customers.createSource(customer, {
+            source: token
+        });
+        return admin.firestore().collection('users').doc(context.params.userId).collection("stripe_sources").doc(response.fingerprint).set(response, {
+            merge: true
+        });
+    } catch (error) {
+        console.log("error adding a payment source: ", error);
+        return 1;
+    }
+});

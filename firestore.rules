@@ -18,12 +18,11 @@ service cloud.firestore {
     }
     // helper to check if they are updating something important
     function notUpdating(field) {
-      return !(field in request.resource.data) || (resource.data[field] && resource.data[field] == request.resource.data[field])
+      return !(field in request.resource.data) || !(field in resource.data) || (resource.data[field] == request.resource.data[field])
     }
     // there is no invalid change if not changing the private things here
     function noInvalidDataChange() {
-    	return !('isAdmin' in request.resource.data) || false == request.resource.data['isAdmin'] &&
-            notUpdating('joined_date') &&
+    	return notUpdating('isAdmin') &&
             notUpdating('lcount_permitted') &&
             notUpdating('lpromotions_permitted') &&
       			notUpdating('expiry_coach') &&
@@ -31,8 +30,7 @@ service cloud.firestore {
     }
     // is the coaching subscription still active
 		function isCoach() {
-    	return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.expiry_coach == null ||
-      			 get(/databases/$(database)/documents/users/$(request.auth.uid)).data.expiry_coach > request.time;
+    	return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.expiry_coach > request.time;
     }
     // Allow public write access to messages, but only users can read them
     match /users/{userId}/messages/{documents=**} {
@@ -45,7 +43,16 @@ service cloud.firestore {
 	    allow read, delete: if isRequestingUser(userId) || isAdmin();
       // Disallow the creation of users with active subscriptions / admin rights
       allow update : if (noInvalidDataChange() && isRequestingUser(userId)) || isAdmin();
-      allow create: if noInvalidDataChange() && isRequestingUser(userId);
+      allow create: if true;
+      match /stripe_sources/{sourceId} {
+        allow read: if request.auth.uid == uid;
+      }
+      match /stripe_tokens/{sourceId} {
+        allow read,write: if request.auth.uid == uid;
+      }
+      match /stripe_charges/{chargeId} {
+        allow read, write: if request.auth.uid == uid;
+      }
     }
     match /admin_messages/{documents=**} {
     	// members can send us a message

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+
+<!-- see https://firebase.google.com/docs/use-cases/payments for setting the config keys etc-->
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="description" content="" />
+	<meta name="keywords" content="" />
+	<title>Contact Walking Tennis</title>
+
+	<!-- update the version number as needed -->
+	<script defer src="/__/firebase/7.0.0/firebase-app.js"></script>
+	<!-- include only the Firebase features as you need -->
+	<script defer src="/__/firebase/7.0.0/firebase-auth.js"></script>
+	<script defer src="/__/firebase/7.0.0/firebase-database.js"></script>
+	<script defer src="/__/firebase/7.0.0/firebase-messaging.js"></script>
+	<script defer src="/__/firebase/7.0.0/firebase-storage.js"></script>
+	<script defer src="/__/firebase/7.0.0/firebase-firestore.js"></script>
+	<!-- add the UI for logging in-->
+	<script src="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.js"></script>
+	<link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.css" />
+	<!-- initialize the SDK after all desired features are loaded -->
+	<script defer src="/__/firebase/init.js"></script>
+
+	<!-- add our page specific javascript here -->
+    <script src="https://js.stripe.com/v2/"></script>
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+	<script src="pagejs/adminpayment.js"></script>
+
+
+	<!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
+	<script src="js/jquery.min.js"></script>
+	<script src="js/jquery.dropotron.min.js"></script>
+	<script src="js/jquery.scrollgress.min.js"></script>
+	<script src="js/jquery.scrolly.min.js"></script>
+	<script src="js/jquery.slidertron.min.js"></script>
+	<script src="js/skel.min.js"></script>
+	<script src="js/skel-layers.min.js"></script>
+	<script src="js/firebase.js"></script>
+	<script src="js/init.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/walking-tennis.css" />
+
+	<noscript>
+		<link rel="stylesheet" href="css/skel.css" />
+		<link rel="stylesheet" href="css/style.css" />
+		<link rel="stylesheet" href="css/style-xlarge.css" />
+	</noscript>
+	<!--[if lte IE 9]><link rel="stylesheet" href="css/ie/v9.css" /><![endif]-->
+	<!--[if lte IE 8]><link rel="stylesheet" href="css/ie/v8.css" /><![endif]-->
+</head>
+
+<body class="landing">
+	<!-- Header -->
+	<header id="header" class="skel-layers-fixed">
+		<h1><a href="index.html">Walking Tennis Academy</a></h1>
+		<nav id="nav">
+			<ul>
+				<li><a href="index.html">Home</a></li>
+				<li>
+					<a href="javascript:signinFirebase();" id="firebaseSignIn" class="button special">Log In...</a>
+					<ul class='menu_members'>
+						<li class='menu_members' ><a href="members_profile.html">Profile</a></li>
+						<li class='menu_members'><a href="members_messages.html">Messages</a></li>
+						<li class='menu_members'><a href="members_friends.html">Friends</a></li>
+					</ul>
+				</li>
+				<li><a href="learning.html">Learn to Play</a></li>
+				<li class='menu_extras' style="display: none">
+					<a href="">Extras</a>
+					<ul>
+						<li><a href="extras_coaching.html">Coaching</a></li>
+						<li><a href="extras_promotion.html">Promotion</a></li>
+					</ul>
+				</li>
+				<li><a href="rules.html">Rules</a></li>
+				<li><a href="placestoplay.html">Places to Play</a></li>
+				<li class='menu_admin' style="display: none">
+					<a href="">Admin</a>
+					<ul>
+						<li><a href="admin_users.html">Manage Users</a></li>
+						<li><a href="admin_messages.html">Check Messages</a></li>
+						<li><a href="admin_editLessons.html">Edit Lessons</a></li>
+					</ul>
+				</li>
+			</ul>
+		</nav>
+	</header>
+
+	<!-- log-in area to show the google login options -->
+	<div id="firebase_login_container" class="message_box" style="display: none;">
+		<a href="javascript:cancelLoginUi();" class="button special">x</a>
+		<span class="image half"><img src="images/branding/logos/full_logo_fill_512.png" alt="" /></span>
+	</div>
+	<div id="firebaseui-auth-container"></div>
+
+	<div id='alert_box' class="alert-box success" style="display: none;">
+		<span id='alert_box_content'>Successful Alert !!</span>
+		<!--<a href="javascript:hideAlertBox();" class="button" style="height: 30px; width: 30px;">x</a>-->
+	</div>
+
+	<!-- Main -->
+	<section id="main" class="wrapper style1">
+		<div class="container">
+			<div id="app">
+				<div id="firebaseui-auth-container"></div>
+				<div id="loader">&hellip;</div>
+				<div v-if="currentUser">
+				<H1> should work like <a href='https://firebase.google.com/docs/use-cases/payments'>the example</a></H1>
+				<h2>Hello {{ currentUser.email }},</h2>
+				<div v-if="stripeCustomerInitialized">
+					<h3>Credit Cards</h3>
+					<ul>
+					<li v-for="source in sources">
+						<span v-if="source.id">
+						{{ source.brand }} &hellip;{{ source.last4 }}
+						(exp. {{ source.exp_month }}/{{ source.exp_year }})
+						</span>
+						<span v-else>&hellip;</span>
+					</li>
+					</ul>
+					<div>
+					<h4>New</h4>
+					<div>
+						<label>
+						Number <input v-model="newCreditCard.number">
+						</label>
+					</div>
+					<div>
+						<label>
+						CCV <input v-model="newCreditCard.cvc">
+						</label>
+					</div>
+					<div>
+						<label>
+						Exp
+						<input v-model="newCreditCard.exp_month" size="2"> /
+						<input v-model="newCreditCard.exp_year" size="4">
+						</label>
+					</div>
+					<div>
+						<label>
+						Zip <input v-model="newCreditCard.address_zip">
+						</label>
+					</div>
+					<div>
+						<button v-on:click="submitNewCreditCard">Add</button>
+						{{ newCreditCard.error }}
+					</div>
+					</div>
+					<h3>Charges</h3>
+					<ul>
+					<li v-for="(charge, id) in charges">
+						{{ charge.amount }}
+						<span v-if="charge.error">
+						{{ charge.error }}
+						</span>
+						<span v-else-if="charge.outcome">
+						{{ charge.outcome.seller_message }}
+						{{ charge.source.brand }} &hellip;{{ charge.source.last4 }}
+						(exp. {{ charge.source.exp_month }}/{{ charge.source.exp_year }})
+						</span>
+						<span v-else>&hellip;</span>
+					</li>
+					</ul>
+					<h4>New</h4>
+					<div>
+					<label>
+						Card
+						<select v-model="newCharge.source">
+						<option :value="null">Default payment method</option>
+						<option v-for="(source, id) in sources" v-bind:value="source.id" v-if="source.id">
+							{{ source.brand }} &hellip;{{ source.last4 }}
+							(exp. {{ source.exp_month }}/{{ source.exp_year }})
+						</option>
+						</select>
+					</label>
+					</div>
+					<div>
+					<label>
+						Amount <input v-model="newCharge.amount">
+					</label>
+					</div>
+					<div>
+					<button v-on:click="submitNewCharge">Charge</button>
+					{{ newCharge.error }}
+					</div>
+				</div>
+				<div v-else>&hellip;</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Footer -->
+	<footer id="footer">
+		<ul class="icons">
+			<li><a href="https://twitter.com/WalkingTennis" class="icon fa-twitter"><span class="label">Twitter</span></a>
+			</li>
+			<li><a href="https://www.facebook.com/walkingtennisacademy/" class="icon fa-facebook"><span
+						class="label">Facebook</span></a></li>
+			<li><a href="https://www.instagram.com/walkingtennisacademy" class="icon fa-instagram"><span
+						class="label">Instagram</span></a></li>
+			<li><a href="https://www.youtube.com/channel/UCTW0Xa6AtSVrYr9b4u6tWJg" class="icon fa-youtube"><span
+						class="label">YouTube</span></a></li>
+			<li><a href="admincontact.html" class="icon fa-envelope"><span class="label">Envelope</span></a></li>
+		</ul>
+		<ul class="menu">
+			<li><a href="adminfaq.html">FAQ</a></li>
+			<li><a href="adminterms.html">Terms of Use</a></li>
+			<li><a href="adminprivacy.html">Privacy</a></li>
+			<li><a href="admincontact.html">Contact</a></li>
+		</ul>
+		<span class="copyright">
+			&copy; Copyright. All rights reserved. Design by Darker Waters LTD
+		</span>
+	</footer>
+</body>
+
+</html>
