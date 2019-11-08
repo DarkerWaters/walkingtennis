@@ -11,6 +11,11 @@ function showMembershipChange() {
     document.getElementById('membership_button').style.display = 'none';
 };
 
+function showMembershipDelete() {
+    document.getElementById('delete_membership').style.display = null;
+    document.getElementById('show_delete_button').style.display = 'none';
+};
+
 function sendEmailVerfication() {
     var user = firebaseData.getUser();
     if (user) {
@@ -59,8 +64,7 @@ function displayMembershipData(data) {
     document.getElementById('home_location_label').innerHTML = locationString;
     */
 
-    var date = data['expiry_member'];
-    if (date == null || date.toDate().getTime() > new Date().getTime()) {
+    if (firebaseData.isUserMember(data)) {
         // there is no expiry, or it hasn't passed, this is active, we are a member
         document.getElementById('membership-member').checked = true;
     }
@@ -76,25 +80,23 @@ function displayMembershipData(data) {
         document.getElementById('lcount_permitted').innerHTML = permittedLocationShareCount;
     }
     
-    date = data['expiry_coach'];
-    if (date == null || date.toDate().getTime() > new Date().getTime()) {
+    
+    if (firebaseData.isUserCoach(data)) {
         // there is no expiry, or it hasn't passed, this is active, we are a coach
         document.getElementById('membership-coach').checked = true;
-        if (date == null) {
-            // lasts forever
-            document.getElementById('membership-coach-expiry').value = "never";
-        }
-        else {
-            // else there is an expiry date
-            document.getElementById('membership-coach-expiry').value = date.toDate().toLocaleDateString();
-        }
-        // and show it
-        document.getElementById('membership-coach-expiry-input').style.display = 'inline';
     }
     else {
         // the expiry date has passed
         document.getElementById('membership-coach').checked = false;
         document.getElementById('membership-coach-expiry-input').style.display = 'none';
+    }
+
+    var date = data['expiry_coach'];
+    if (date) {
+        // there is an expiry date
+        document.getElementById('membership-coach-expiry').value = date.toDate().toLocaleDateString();
+        // so show it
+        document.getElementById('membership-coach-expiry-input').style.display = null;
     }
 
     // show this map of where they are now.
@@ -850,6 +852,103 @@ function displayShareLocationTableData() {
 
 function initMap() {
 
+}
+
+function closeConfirmContainer() {
+    document.getElementById('purchase_confirm_container').style.display = 'none';
+}
+
+function showConfirmContainer(description, buttonText, buttonFunction) {
+    var confirmContainer = document.getElementById('purchase_confirm_container');
+    confirmContainer.style.display = null;
+    var confirmText = confirmContainer.querySelector('#confirmation_text');
+    var confirmButton = confirmContainer.querySelector('#confirmation_button');
+    confirmText.innerHTML = description;
+    confirmButton.innerHTML = buttonText;
+    confirmButton.onclick = buttonFunction;
+}
+
+function purchaseTrialPackage() {
+    // show the container to check they are happy
+    
+    // check ur current status
+    var user = firebaseData.getUser();
+    if (!user) {
+        // not logged in
+        showConfirmContainer(
+            'Sorry, but you are not logged in. Please log in, or create a log in, in order to start your trial.',
+            'Log in',
+            function() {
+                // log them in and close the container
+                signinFirebase();
+                closeConfirmContainer();
+            });
+    }
+    else {
+        // we are logged in, get the user data
+        firebaseData.getUserData(user, function(userData) {
+            if (userData.coach_trial_used) {
+                // they used their trial already
+                showConfirmContainer(
+                    'Sorry, our records show that you already tried the trial, please purchase a package to gain access to the coaching materials.',
+                    'Close',
+                    function() {
+                        // close the container
+                        closeConfirmContainer();
+                    });
+            }
+            else if (userData.expiry_coach) {
+                // they used their trial already
+                showConfirmContainer(
+                    'Sorry, our records show that you were already (or are still are) a coach. Please purchase a package to gain access to the coaching materials.',
+                    'Close',
+                    function() {
+                        // close the container
+                        closeConfirmContainer();
+                    });
+            }
+            else {
+                // start the trial
+                showConfirmContainer(
+                    'This will start your 7 days of access to online coaching materials. Click that you want to proceed and refresh the page to get the new menu options!',
+                    'Start Trial',
+                    function() {
+                        // log them in and close the container
+                        firebaseData.startUserCoachingTrial(user.uid, function() {
+                            // yey
+                            window.location.reload();
+                        });
+                        closeConfirmContainer();
+                    });
+            }
+        },
+        function(error) {
+            showConfirmContainer(
+                ('Sorry, something failed when trying to get your user data, please log-in again? ', error),
+                'Log in',
+                function() {
+                    // log them in and close the container
+                    signinFirebase();
+                    closeConfirmContainer();
+                });
+
+        });
+        
+    }
+    /*
+    // show the container to check they are happy
+    var confirmContainer = document.getElementById('purchase_confirm_container');
+    confirmContainer.style.display = null;
+    var confirmText = confirmContainer.querySelector('#confirmation_text');
+    confirmText.innerHTML = 'This will start your 7 days of access to online coaching materials. Click that you want to proceed and refresh the page to get the new menu options!';
+    var confirmButton = confirmContainer.querySelector('#confirmation_button');
+    confirmButton.innerHTML = "Start Trial";
+    confirmButton.onclick = function() {
+        // start the trial
+        alert('start coaching trial');
+        closeConfirmContainer();
+    }
+    */
 }
 
 document.addEventListener('firebaseuserchange', function() {

@@ -548,14 +548,14 @@ const firebaseData = {
 
     updateUserData : function (user, userData, onSuccess, onFailure) {
         firebase.firestore().collection(this.collectionUsers).doc(user.uid).update(userData)
-        .then(function() {
-            // this worked
-            onSuccess ? onSuccess() : null;
-        })
-        .catch(function(error) {
-            // this failed
-            onFailure ? onFailure(error) : console.log("Failed to update the document: ", error);
-        });
+            .then(function() {
+                // this worked
+                onSuccess ? onSuccess() : null;
+            })
+            .catch(function(error) {
+                // this failed
+                onFailure ? onFailure(error) : console.log("Failed to update the document: ", error);
+            });
     },
 
     deleteAllUserData : function(user, onSuccess, onFailure) {
@@ -595,35 +595,42 @@ const firebaseData = {
         });
     },
     
-    checkDataExpiryDate : function(firebaseUserData, dataTitle) {
-        if (firebaseUserData) {
-            var date = firebaseUserData[dataTitle];
-            if (date == null || date.toDate().getTime() > new Date().getTime()) {
-                // there is no expiry, or it hasn't passed, this is active, we are good to go
-                return true;
-            }
-            else {
-                // the expiry date has passed
-                return false;
-            }
-        }
-        else {
-            // no data
-            console.log("trying to get if user data without any data")
-            return false;
-        }
-    },
-    
     isUserMember : function(firebaseUserData) {
-        return this.checkDataExpiryDate(firebaseUserData, "expiry_member");
+        // get the expiry
+        var date = firebaseUserData['expiry_member'];
+        // if there is no date, we didn't expire - if there is then we probably did!
+        return !date || date.toDate().getTime() > new Date().getTime();
     },
     
     isUserCoach : function(firebaseUserData) {
-        return this.checkDataExpiryDate(firebaseUserData, "expiry_coach");
+        // get the expiry
+        var date = firebaseUserData['expiry_coach'];
+        // to be a coach we need a date and that date needs to be in the future
+        return date && date.toDate().getTime() > new Date().getTime();
     },
     
     isUserAdmin : function(firebaseUserData) {
         return firebaseUserData['isAdmin'];
+    },
+
+    startUserCoachingTrial : function(userUid, onSuccess, onFailure) {
+        // create a date 7 days from now
+        var expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 7);
+        // set the user coaching expiry data to a week from now and set the flag that they did this
+        firebase.firestore().collection(this.collectionUsers).doc(userUid)
+            .update({
+                coach_trial_used: true,
+                expiry_coach: expiryDate,
+            })
+            .then(function() {
+                // this worked
+                onSuccess ?  onSuccess() : null;
+            })
+            .catch(function(error) {
+                // this didn't work
+                onFailure ? onFailure(error) : console.log("Failed to add the document: ", error);
+            });
     },
 
     sendMessage(destinationUid, messageContent, onSuccess, onFailure) {

@@ -37,6 +37,7 @@ service cloud.firestore {
             notUpdating('lcount_permitted') &&
             notUpdating('lpromotions_permitted') &&
       			notUpdating('expiry_coach') &&
+            notUpdating('coach_trial_used') &&
             notUpdating('expiry_member');
     }
     // Allow public write access to messages, but only users can read them

@@ -86,3 +86,27 @@
     background-color: #fcf8e3;
     border-color: #faebcc;
 }
+
+.card {
+    background-color: cadetblue;
+    margin: 4%;
+    text-align: center;
+    color: #faebcc;
+}
+
+.card > p, .card > h1, .card > h2, .card > a, .card > div {
+    color: #faebcc;
+    padding-right: 32px;
+}
+
+.card > h1 {
+    font-size: 2em;
+}
+
+.card > hr {
+    border-bottom: solid 2px #faebcc;
+}
+
+.card > h2 {
+    font-size: 1em;
+}

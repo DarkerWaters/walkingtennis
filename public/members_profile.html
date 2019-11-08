@@ -96,6 +96,13 @@
 		<!--<a href="javascript:hideAlertBox();" class="button" style="height: 30px; width: 30px;">x</a>-->
 	</div>
 
+	<div id="purchase_confirm_container" class="message_box" style="display: none;">
+		<a href="javascript:closeConfirmContainer();" class="button special">x</a>
+		<span class="image half"><img src="images/branding/logos/full_logo_fill_512.png" alt="" /></span>
+		<h3 style='color:aliceblue' id="confirmation_text"></h3>
+		<a id="confirmation_button" class="button special">Start Trial</a>
+	</div>
+
 	<!-- Main -->
 	<section id="main" class="wrapper style1">
 		<div class="container">
@@ -277,9 +284,47 @@
 						</span>
 					</div>
 				</div>
+				<div class="row uniform">
+					<div class="3u 12u(3) card">
+						<h1>Leader</h1>
+						<hr>
+						<h2>£19.99<br>Per Year</h2>
+						<hr>
+						<p>Access to coaching materials and the ability to advertise a web address and a location for people to play.</p>
+						<div>
+							<a class="button special" id='trial_purchase_button' onclick="purchaseTrialPackage();">7 Day Trial</a>
+						</div>
+						<div>
+							<a class="button special" id='leader_purchase_button' onclick="purchaseLeaderPackage();">Purchase</a>
+						</div>
+						<br>
+					</div>
+					<div class="3u 12u(3) card">
+						<h1>Coach</h1>
+						<hr>
+						<h2>£49.99<br>Per Year</h2>
+						<hr>
+						<p>Access to coaching materials and the ability to advertise but with included coaching materials and welcome course attendance.</p>
+						<div>
+							<a class="button special" id='coach_purchase_button' onclick="purchaseCoachPackage();">Purchase</a>
+						</div>
+						<br>
+					</div>
+					<div class="3u 12u(3) card">
+						<h1>Club</h1>
+						<hr>
+						<h2>£99.99<br>Per Year</h2>
+						<hr>
+						<p>Promote your club online and with included materials. Includes the ability to add a free Leader and a free a Coach included.</p>
+						<div>
+							<a class="button special" id='club_purchase_button' onclick="purchaseClubPackage();">Purchase</a>
+						</div>
+						<br>
+					</div>
+				</div>
 				<div>
 					<br/>
-					<a class="button" id='membership_button' onclick="showMembershipChange();">Change Membership Level</a>
+					<a class="button special" id='membership_button' onclick="showMembershipChange();">Change Membership Level</a>
 				</div>
 				<div id='change_membership' style='display:none'>
 					<header class="major">
@@ -287,6 +332,9 @@
 						<p>Sorry about this, but the site is still very much a work in progress. If you are interested in becoming a Walking Tennis coach, or affiliate or just interested, please get in touch via facebook or email and we will call you back with enthusiasm (O:</p>
 					</header>
 					<hr>
+					<a class="button" id='show_delete_button' onclick="showMembershipDelete();">Delete Profile</a>
+				</div>
+				<div id='delete_membership' style='display:none'>
 					<header class="major">
 						<h3>Delete your membership</h2>
 						<p>We don't want you to leave, please don't (O:</p>
