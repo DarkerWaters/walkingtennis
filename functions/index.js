@@ -47,6 +47,23 @@ let transporter = nodemailer.createTransport({
 });
 */
 
+function lcRef (str) {
+    if (!str) {
+        return str;
+    }
+    else {
+        // remove all spaces and make it lowercase
+        str = str.toLowerCase().replace(/\s/g,'');
+        // and get rid of anything too weird
+        str = str.replace(/\W/g, '');
+        if (str.length > 1 && str.slice(-1) === 's') {
+            // remove any trailing 's' characters
+            str = str.slice(0, -1);
+        }
+        return str;
+    }
+}
+
 // when a user is created / first sign on, then we want to create the user entry to track their subscriptions etc
 exports.createUserData = functions.auth.user().onCreate(async (user) => {
     // need a stripe customer ID for every user
@@ -55,10 +72,10 @@ exports.createUserData = functions.auth.user().onCreate(async (user) => {
     var newUserData = {
         // setup the blank user data here
         name: user.displayName,
-        name_lc: user.displayName.toLowerCase(),
+        name_lc: lcRef(user.displayName),
         customer_id: customer.id,
         email: user.email,
-        email_lc: user.email.toLowerCase(),
+        email_lc: lcRef(user.email),
         isAdmin: false,
         lcount_permitted: 1,
         lpromotions_permitted: 0,

@@ -11,10 +11,21 @@ service cloud.firestore {
     function isAdmin() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
+    // the date can be missing or later than now
+    function isDateMissingOrValid(data, fieldName) {
+    	return ! (fieldName in data) || data[fieldName] == null || data[fieldName] > request.time;
+    }
+    // the date has to be there and has to be later than now
+    function isDateThereAndValid(data, fieldName) {
+      return (fieldName in data) && data[fieldName] != null && data[fieldName] > request.time;
+    }
     // is the membership null or still active
 		function isMember() {
-    	return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.expiry_member == null ||
-      			 get(/databases/$(database)/documents/users/$(request.auth.uid)).data.expiry_member > request.time
+      return isDateMissingOrValid(get(/databases/$(database)/documents/users/$(request.auth.uid)).data, 'expiry_member');
+    }
+    // is the coaching subscription still active
+		function isCoach() {
+    	return isDateThereAndValid(get(/databases/$(database)/documents/users/$(request.auth.uid)).data, 'expiry_coach');
     }
     // helper to check if they are updating something important
     function notUpdating(field) {
@@ -27,10 +38,6 @@ service cloud.firestore {
             notUpdating('lpromotions_permitted') &&
       			notUpdating('expiry_coach') &&
             notUpdating('expiry_member');
-    }
-    // is the coaching subscription still active
-		function isCoach() {
-    	return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.expiry_coach > request.time;
     }
     // Allow public write access to messages, but only users can read them
     match /users/{userId}/messages/{documents=**} {
@@ -81,8 +88,10 @@ service cloud.firestore {
     match /locations/{documents=**} {
       // allow members to read this published information
     	allow read: if isMember();
-      // only allow the users to create, update and write their own data
-      allow write, create, update : if (request.auth.uid == request.resource.data['user_uid'] && request.auth.uid == resource.data['user_uid']) || isAdmin();
+      // only allow the users to create their own data (check new uid matches theirs)
+      allow create : if request.auth.uid == request.resource.data['user_uid'] || isAdmin();
+      // allow user to update their own data (check existing data uid matches theirs)
+      allow update : if (request.auth.uid == request.resource.data['user_uid'] && request.auth.uid == resource.data['user_uid']) || isAdmin();
       // can delete if the request comes from the user uid who owns the data (or admin)
       allow delete : if request.auth.uid == resource.data['user_uid'] || isAdmin();
     }

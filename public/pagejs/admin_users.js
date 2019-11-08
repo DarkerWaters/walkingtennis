@@ -6,7 +6,7 @@ function searchUserNames() {
     var name = document.getElementById('name').value;
     container.innerHTML = "Searching for users with the name of '" + name + "'.";
 
-    firebase.firestore().collection('users').where("name_lc", "==", name.toLowerCase()).get()
+    firebase.firestore().collection('users').where("name_lc", "==", firebaseData.lcRef(name)).get()
         .then(function(querySnapshot) {
             // this worked
             if (querySnapshot.empty) {
@@ -33,7 +33,7 @@ function searchUserEmails() {
     var email = document.getElementById('email').value;
     container.innerHTML = "Searching for users with the email address of '" + email + "'.";
 
-    firebase.firestore().collection('users').where("email_lc", "==", email.toLowerCase()).get()
+    firebase.firestore().collection('users').where("email_lc", "==", firebaseData.lcRef(email)).get()
         .then(function(querySnapshot) {
             // this worked
             if (querySnapshot.empty) {
