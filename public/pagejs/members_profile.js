@@ -80,7 +80,6 @@ function displayMembershipData(data) {
         document.getElementById('lcount_permitted').innerHTML = permittedLocationShareCount;
     }
     
-    
     if (firebaseData.isUserCoach(data)) {
         // there is no expiry, or it hasn't passed, this is active, we are a coach
         document.getElementById('membership-coach').checked = true;
@@ -97,6 +96,19 @@ function displayMembershipData(data) {
         document.getElementById('membership-coach-expiry').value = date.toDate().toLocaleDateString();
         // so show it
         document.getElementById('membership-coach-expiry-input').style.display = null;
+    }
+
+    if (typeof permittedLocationShareCount !== "undefined") {
+        // can share something
+        document.getElementById('membership-lcount').checked = true;
+        document.getElementById('membership-lcount-span').innerHTML = permittedLocationShareCount;
+    }
+
+    var permittedPromotionShareCount = data['lpromotions_permitted'];
+    if (typeof permittedPromotionShareCount !== "undefined") {
+        // can share something
+        document.getElementById('membership-pcount').checked = true;
+        document.getElementById('membership-pcount-span').innerHTML = permittedPromotionShareCount;
     }
 
     // show this map of where they are now.

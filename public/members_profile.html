@@ -54,8 +54,8 @@
 		<nav id="nav">
 			<ul>
 				<li><a href="index.html">Home</a></li>
-				<li>
-					<a href="javascript:signinFirebase();" id="firebaseSignIn" class="button special">Log In...</a>
+				<li><a href="javascript:signinFirebase();" id="firebaseSignIn" class="button special">Log In...</a></li>
+				<li><a id="firebaseSignedIn" href="members_profile.html">Profile Parent</a>
 					<ul class='menu_members'>
 						<li class='menu_members' ><a href="members_profile.html">Profile</a></li>
 						<li class='menu_members'><a href="members_messages.html">Messages</a></li>
@@ -119,6 +119,13 @@
 							<a class="button special" id='log_out' onclick="logout();">Log out...</a>
 						</span>
 					</div>
+					<div class="6u 12u(3)">
+						<!-- empty space-->
+					</div>
+					<div class="3u 12u(3)" style="text-align: right;">
+						<a class="button" href="members_messages.html">Messages</a>
+						<a class="button" href="members_friends.html">Friends</a>
+					</div>
 				</div>
 				<hr>
 				<header class="major">
@@ -181,6 +188,78 @@
 				</div>
 				<p></p>
 				<hr>
+				<div class="row uniform">
+					<div class="3u 12u(3) card">
+						<h1>Leader</h1>
+						<hr>
+						<h2>£19.99<br>Per Year</h2>
+						<hr>
+						<p>Access to coaching materials and the ability to advertise a web address and a location for people to play.</p>
+						<div>
+							<a class="button special" id='trial_purchase_button' onclick="purchaseTrialPackage();">7 Day Trial</a>
+						</div>
+						<div>
+							<a class="button special" id='leader_purchase_button' onclick="purchaseLeaderPackage();">Purchase</a>
+						</div>
+						<br>
+					</div>
+					<div class="3u 12u(3) card">
+						<h1>Coach</h1>
+						<hr>
+						<h2>£49.99<br>Per Year</h2>
+						<hr>
+						<p>Access to coaching materials and the ability to advertise but with included coaching materials and welcome course attendance.</p>
+						<div>
+							<a class="button special" id='coach_purchase_button' onclick="purchaseCoachPackage();">Purchase</a>
+						</div>
+						<br>
+					</div>
+					<div class="3u 12u(3) card">
+						<h1>Club</h1>
+						<hr>
+						<h2>£99.99<br>Per Year</h2>
+						<hr>
+						<p>Promote your club online and with included materials. Includes the ability to add a free Leader and a free a Coach included.</p>
+						<div>
+							<a class="button special" id='club_purchase_button' onclick="purchaseClubPackage();">Purchase</a>
+						</div>
+						<br>
+					</div>
+				</div>
+				<header class="major">
+					<h3>Membership Permissions</h3>
+					<p>Your current membership level permits access to the following functions on this site.</p>
+				</header>
+				<div class="row uniform">
+					<div class="6u 12u(2)">
+						<input type="checkbox" id="membership-member" name="membership member" onclick="return false;" />
+						<label for="membership-member">Standard Member</label>
+					</div>
+				</div>
+				<div class="row uniform">
+					<div class="8u 12u(2)">
+						<span>
+							<span>
+								<input type="checkbox" id="membership-coach" name="membership coach" style="display: inline" onclick="return false;" />
+								<label for="membership-coach">Access to Coaching Materials until</label>
+							</span>
+							<span id="membership-coach-expiry-input" style="display: none">
+								<input type="text" id="membership-coach-expiry" name="membership coach expiry date" style="width: 50%; display: inline; " readonly />
+							</span>
+						</span>
+					</div>
+				</div>
+				<div class="row uniform">
+					<div class="6u 12u(2)">
+						<input type="checkbox" id="membership-lcount" name="membership lcount" style="display: inline" onclick="return false;" />
+						<label for="membership-lcount">Ability to share <span id="membership-lcount-span"></span> personal locations.</label>
+					</div>
+					<div class="6u 12u(2)">
+						<input type="checkbox" id="membership-pcount" name="membership lcount" style="display: inline" onclick="return false;" />
+						<label for="membership-pcount">Ability to share <span id="membership-pcount-span"></span> promotional locations.</label>
+					</div>
+				</div>
+				<hr>
 				<!-- Communications preferences -->
 				<header class="major">
 					<h3>Communications preferences</h3>
@@ -199,8 +278,6 @@
 						<label for="isRx-emailFromPartners">Receive Emails from WkTA partners</label>
 					</div>
 				</div>
-				<p></p>
-				<hr>
 				<!-- locations to share -->
 				<div class="row uniform">
 					<div class="6u 12u(3)">
@@ -263,81 +340,20 @@
 				</div>
 				<p></p>
 				<hr>
-				<header class="major">
-					<h3>Membership settings</h3>
-				</header>
-				<div class="row uniform">
-					<div class="6u 12u(2)">
-						<input type="checkbox" id="membership-member" name="membership member" onclick="return false;" />
-						<label for="membership-member">Standard Member</label>
-					</div>
-					<div class="6u 12u(2)">
-						<span>
-							<span>
-								<input type="checkbox" id="membership-coach" name="membership coach" style="display: inline" onclick="return false;" />
-								<label for="membership-coach">Coach</label>
-							</span>
-							<span id="membership-coach-expiry-input" style="display: none">
-								<input type="text" id="membership-coach-expiry" name="membership coach expiry date" style="width: 50%; display: inline; " readonly />
-								<label for="membership-coach-expiry" style="display: inline">Expiry</label>
-							</span>
-						</span>
-					</div>
-				</div>
-				<div class="row uniform">
-					<div class="3u 12u(3) card">
-						<h1>Leader</h1>
-						<hr>
-						<h2>£19.99<br>Per Year</h2>
-						<hr>
-						<p>Access to coaching materials and the ability to advertise a web address and a location for people to play.</p>
-						<div>
-							<a class="button special" id='trial_purchase_button' onclick="purchaseTrialPackage();">7 Day Trial</a>
-						</div>
-						<div>
-							<a class="button special" id='leader_purchase_button' onclick="purchaseLeaderPackage();">Purchase</a>
-						</div>
-						<br>
-					</div>
-					<div class="3u 12u(3) card">
-						<h1>Coach</h1>
-						<hr>
-						<h2>£49.99<br>Per Year</h2>
-						<hr>
-						<p>Access to coaching materials and the ability to advertise but with included coaching materials and welcome course attendance.</p>
-						<div>
-							<a class="button special" id='coach_purchase_button' onclick="purchaseCoachPackage();">Purchase</a>
-						</div>
-						<br>
-					</div>
-					<div class="3u 12u(3) card">
-						<h1>Club</h1>
-						<hr>
-						<h2>£99.99<br>Per Year</h2>
-						<hr>
-						<p>Promote your club online and with included materials. Includes the ability to add a free Leader and a free a Coach included.</p>
-						<div>
-							<a class="button special" id='club_purchase_button' onclick="purchaseClubPackage();">Purchase</a>
-						</div>
-						<br>
-					</div>
-				</div>
 				<div>
 					<br/>
-					<a class="button special" id='membership_button' onclick="showMembershipChange();">Change Membership Level</a>
+					<a class="button" id='membership_button' onclick="showMembershipChange();">Delete Membership Data</a>
 				</div>
 				<div id='change_membership' style='display:none'>
 					<header class="major">
-						<h2>Upgrade your membership</h2>
-						<p>Sorry about this, but the site is still very much a work in progress. If you are interested in becoming a Walking Tennis coach, or affiliate or just interested, please get in touch via facebook or email and we will call you back with enthusiasm (O:</p>
+						<h2>We will be sorry to see you go...</h2>
+						<p>We do our very best not to irritate you and keep your data as private as we can, we hate to see you leave but it's totally your choice. Hope you come back later (O:</p>
 					</header>
-					<hr>
 					<a class="button" id='show_delete_button' onclick="showMembershipDelete();">Delete Profile</a>
 				</div>
 				<div id='delete_membership' style='display:none'>
 					<header class="major">
-						<h3>Delete your membership</h2>
-						<p>We don't want you to leave, please don't (O:</p>
+						<p>We really don't want you to leave, please don't...</p>
 						<p>We don't sell your data on, we don't use it excessively, and we don't even know very much. The membership stands so we can occasionally email you about new coaches, events, locations to play Walking Tennis etc.</p>
 						<p>In return, we let you organise the lessons, remembering what you looked at and how well you did, look at all the videos, and lot's of stuff in the future.</p>
 						<p>Doug, our tech guy, wants to add a history of your scores, meeting similar skilled people to play, finding places to play, and loads more.</p>

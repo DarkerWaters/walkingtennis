@@ -103,15 +103,12 @@ function updateFirebaseUserDisplay(user) {
 
 function initialiseFirebaseLoginButton() {
     // setup the login button properly
-    var signIn = document.getElementById('firebaseSignIn');
-    if (signIn) {
-        firebase.auth().onAuthStateChanged(function(user) {
-            // update the display of the user here
-            updateFirebaseUserDisplay(user);
-            // dispatch this change to the document
-            document.dispatchEvent(new Event('firebaseuserchange'));
-        });
-    }
+    firebase.auth().onAuthStateChanged(function(user) {
+        // update the display of the user here
+        updateFirebaseUserDisplay(user);
+        // dispatch this change to the document
+        document.dispatchEvent(new Event('firebaseuserchange'));
+    });
 };
 
 function showFirebaseLoginButtons(user, userData) {
@@ -128,20 +125,19 @@ function removeFirebaseLoginButtons() {
 }
 
 function updateMenuButtons(user, isCoach, isAdmin) {
-
     // update the sign in buttons on the menu
     var signIn = document.getElementById('firebaseSignIn');
-    if (signIn) {
+    var signedIn = document.getElementById('firebaseSignedIn');
+    if (signIn && signedIn) {
         if (user) {
+            signIn.style.display = 'none';
+            signedIn.style.display = null;
             // User is signed in, change the profile button to say the member's name instead
-            signIn.textContent = sanitizeHTML(user.displayName) + "...";
-            signIn.classList.remove('button');
-            signIn.classList.remove('special');
+            signedIn.textContent = sanitizeHTML(user.displayName) + "...";
         } else {
             // No user is signed in.
-            signIn.textContent = 'Log In...';
-            signIn.classList.add('button');
-            signIn.classList.add('special');
+            signIn.style.display = null;
+            signedIn.style.display = 'none';
         }
     }
     // hide or show the extras menus accordingly
