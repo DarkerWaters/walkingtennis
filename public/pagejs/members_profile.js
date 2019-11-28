@@ -944,23 +944,8 @@ function purchaseTrialPackage() {
                     closeConfirmContainer();
                 });
 
-        });
-        
+        });  
     }
-    /*
-    // show the container to check they are happy
-    var confirmContainer = document.getElementById('purchase_confirm_container');
-    confirmContainer.style.display = null;
-    var confirmText = confirmContainer.querySelector('#confirmation_text');
-    confirmText.innerHTML = 'This will start your 7 days of access to online coaching materials. Click that you want to proceed and refresh the page to get the new menu options!';
-    var confirmButton = confirmContainer.querySelector('#confirmation_button');
-    confirmButton.innerHTML = "Start Trial";
-    confirmButton.onclick = function() {
-        // start the trial
-        alert('start coaching trial');
-        closeConfirmContainer();
-    }
-    */
 }
 
 document.addEventListener('firebaseuserchange', function() {

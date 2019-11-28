@@ -21,6 +21,7 @@
 	<link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.css" />
 	<!-- initialize the SDK after all desired features are loaded -->
 	<script defer src="/__/firebase/init.js"></script>
+	<script type="text/javascript" id="hs-script-loader" async defer src="//js.hs-scripts.com/5608601.js"></script>
 
 	<!-- add our page specific javascript here -->
 	<script src="js/geofire.js"></script>
@@ -128,6 +129,47 @@
 					</div>
 				</div>
 				<hr>
+				<!-- Membership levels -->
+				<div class="row uniform">
+					<div class="3u 12u(3) card">
+						<h1>Affiliate</h1>
+						<hr>
+						<h2>£19.99<br>Per Year</h2>
+						<hr>
+						<p>Access to coaching materials and the ability to advertise a web address where you play, your shop, service etc.</p>
+						<div>
+							<a class="button special" id='trial_purchase_button' onclick="purchaseTrialPackage();">7 Day Trial</a>
+						</div>
+						<div>
+							<a class="button special" id='leader_purchase_button' onclick="purchaseAffiliatePackage();">Purchase</a>
+						</div>
+						<br>
+					</div>
+					<div class="3u 12u(3) card">
+						<h1>Coach</h1>
+						<hr>
+						<h2>£49.99<br>Per Year</h2>
+						<hr>
+						<p>Access to coaching materials and the ability to advertise but with included coaching materials and welcome course attendance.</p>
+						<div>
+							<a class="button special" id='coach_purchase_button' onclick="purchaseCoachPackage();">Purchase</a>
+						</div>
+						<br>
+					</div>
+					<div class="3u 12u(3) card">
+						<h1>Club</h1>
+						<hr>
+						<h2>£99.99<br>Per Year</h2>
+						<hr>
+						<p>Promote your club online and with included materials. Includes the ability to add a free Leader and a free a Coach included.</p>
+						<div>
+							<a class="button special" id='club_purchase_button' onclick="purchaseClubPackage();">Purchase</a>
+						</div>
+						<br>
+					</div>
+				</div>
+				<!-- personal details -->
+				<hr>
 				<header class="major">
 					<h3>Personal details (will remain private)</h3>
 				</header>
@@ -188,44 +230,6 @@
 				</div>
 				<p></p>
 				<hr>
-				<div class="row uniform">
-					<div class="3u 12u(3) card">
-						<h1>Leader</h1>
-						<hr>
-						<h2>£19.99<br>Per Year</h2>
-						<hr>
-						<p>Access to coaching materials and the ability to advertise a web address and a location for people to play.</p>
-						<div>
-							<a class="button special" id='trial_purchase_button' onclick="purchaseTrialPackage();">7 Day Trial</a>
-						</div>
-						<div>
-							<a class="button special" id='leader_purchase_button' onclick="purchaseLeaderPackage();">Purchase</a>
-						</div>
-						<br>
-					</div>
-					<div class="3u 12u(3) card">
-						<h1>Coach</h1>
-						<hr>
-						<h2>£49.99<br>Per Year</h2>
-						<hr>
-						<p>Access to coaching materials and the ability to advertise but with included coaching materials and welcome course attendance.</p>
-						<div>
-							<a class="button special" id='coach_purchase_button' onclick="purchaseCoachPackage();">Purchase</a>
-						</div>
-						<br>
-					</div>
-					<div class="3u 12u(3) card">
-						<h1>Club</h1>
-						<hr>
-						<h2>£99.99<br>Per Year</h2>
-						<hr>
-						<p>Promote your club online and with included materials. Includes the ability to add a free Leader and a free a Coach included.</p>
-						<div>
-							<a class="button special" id='club_purchase_button' onclick="purchaseClubPackage();">Purchase</a>
-						</div>
-						<br>
-					</div>
-				</div>
 				<header class="major">
 					<h3>Membership Permissions</h3>
 					<p>Your current membership level permits access to the following functions on this site.</p>
